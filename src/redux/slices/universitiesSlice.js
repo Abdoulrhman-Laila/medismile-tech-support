@@ -1,6 +1,6 @@
 // src/redux/slices/universitiesSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "@/api/axios";
+import accountsAxios from "@/api/accountsAxios";
 
 const initialState = {
   universities: [],
@@ -13,10 +13,15 @@ export const fetchUniversities = createAsyncThunk(
   "universities/fetchUniversities",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get("/");
+      // GET /api/universities/
+      const response = await accountsAxios.get("universities/");
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.response?.data ||
+          error.message
+      );
     }
   }
 );
@@ -25,10 +30,20 @@ export const createUniversity = createAsyncThunk(
   "universities/createUniversity",
   async (universityData, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post("/create/", universityData);
+      console.log("📤 إرسال بيانات الجامعة إلى API:", JSON.stringify(universityData, null, 2));
+      // POST /api/universities/create/
+      const response = await accountsAxios.post(
+        "universities/create/",
+        universityData
+      );
+      console.log("📥 استجابة API بعد إنشاء الجامعة:", JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.response?.data ||
+          error.message
+      );
     }
   }
 );
@@ -37,10 +52,20 @@ export const updateUniversityAsync = createAsyncThunk(
   "universities/updateUniversity",
   async ({ id, data }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.put(`/${id}/update/`, data);
+      console.log(`📤 تحديث جامعة ${id} بالبيانات:`, JSON.stringify(data, null, 2));
+      // PATCH /api/universities/<university_id>/
+      const response = await accountsAxios.patch(
+        `universities/${id}/`,
+        data
+      );
+      console.log("📥 استجابة API بعد تحديث الجامعة:", JSON.stringify(response.data, null, 2));
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.response?.data ||
+          error.message
+      );
     }
   }
 );
@@ -49,10 +74,15 @@ export const deleteUniversityAsync = createAsyncThunk(
   "universities/deleteUniversity",
   async (id, { rejectWithValue }) => {
     try {
-      await axiosInstance.delete(`/${id}/delete/`);
+      // DELETE /api/universities/<university_id>/delete/
+      await accountsAxios.delete(`universities/${id}/delete/`);
       return id;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.response?.data ||
+          error.message
+      );
     }
   }
 );
@@ -61,10 +91,15 @@ export const getUniversityDetails = createAsyncThunk(
   "universities/getUniversityDetails",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/${id}/`);
+      // GET /api/universities/<university_id>/
+      const response = await accountsAxios.get(`universities/${id}/`);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.response?.data ||
+          error.message
+      );
     }
   }
 );
@@ -111,14 +146,81 @@ const universitiesSlice = createSlice({
               return null;
             }
             
+            // 🔹 استخراج البريد الإلكتروني بجميع الأسماء المحتملة
+            let email = uni.email ?? 
+                        uni.email_address ?? 
+                        uni.emailAddress ?? 
+                        uni.contact_email ?? 
+                        uni.contactEmail ?? null;
+            
+            // إذا لم نجد البريد الإلكتروني، نبحث في جميع المفاتيح
+            if (!email && typeof uni === 'object') {
+              const emailKey = Object.keys(uni).find(key => 
+                key.toLowerCase().includes('email') && uni[key] && uni[key] !== null && uni[key] !== ''
+              );
+              if (emailKey) {
+                email = uni[emailKey];
+              }
+            }
+            
+            // 🔹 استخراج الهاتف بجميع الأسماء المحتملة
+            let phone = uni.phone ?? 
+                        uni.phone_number ?? 
+                        uni.phoneNumber ?? 
+                        uni.telephone ?? 
+                        uni.contact_phone ?? 
+                        uni.contactPhone ?? null;
+            
+            // إذا لم نجد الهاتف، نبحث في جميع المفاتيح
+            if (!phone && typeof uni === 'object') {
+              const phoneKey = Object.keys(uni).find(key => 
+                (key.toLowerCase().includes('phone') || key.toLowerCase().includes('tel')) && uni[key] && uni[key] !== null && uni[key] !== ''
+              );
+              if (phoneKey) {
+                phone = uni[phoneKey];
+              }
+            }
+            
+            // 🔹 استخراج العنوان بجميع الأسماء المحتملة
+            let address = uni.address ?? 
+                         uni.location ?? 
+                         uni.full_address ?? 
+                         uni.fullAddress ?? null;
+            
+            // إذا لم نجد العنوان، نبحث في جميع المفاتيح
+            if (!address && typeof uni === 'object') {
+              const addressKey = Object.keys(uni).find(key => 
+                (key.toLowerCase().includes('address') || key.toLowerCase().includes('location')) && uni[key] && uni[key] !== null && uni[key] !== ''
+              );
+              if (addressKey) {
+                address = uni[addressKey];
+              }
+            }
+            
+            // 🔹 طباعة البيانات للتحقق من أول جامعة
+            if (data.length > 0 && uni === data[0]) {
+              console.log("🔍 بيانات الجامعة الأولى من API (كاملة):", JSON.stringify(uni, null, 2));
+              console.log("📧 البريد الإلكتروني المستخرج:", email);
+              console.log("📍 العنوان المستخرج:", address);
+              console.log("📞 الهاتف المستخرج:", phone);
+            }
+            
             return {
               ...uni,
               // استخدام UUID الحقيقي فقط
               id: uniId,
               // الحفاظ على القيم الأصلية من API (null, undefined, أو القيمة الفعلية)
-              email: uni.email ?? uni.email_address ?? null,
-              phone: uni.phone ?? uni.phone_number ?? uni.telephone ?? null,
-              address: uni.address ?? uni.location ?? uni.full_address ?? null,
+              name: uni.name ?? null,
+              short_name: uni.short_name ?? uni.shortName ?? null,
+              description: uni.description ?? null,
+              address: address,
+              city: uni.city ?? null,
+              country: uni.country ?? null,
+              website: uni.website ?? uni.website_url ?? uni.websiteUrl ?? null,
+              email: email,
+              phone: phone,
+              logo: uni.logo ?? null,
+              is_active: uni.is_active ?? uni.isActive ?? true,
               created_at: uni.created_at ?? uni.createdAt ?? null,
               updated_at: uni.updated_at ?? uni.updatedAt ?? null,
             };

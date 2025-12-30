@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
+import { login } from "@/redux/slices/authSlice";
 
 // أيقونات (Heroicons)
 const EnvelopeIcon = dynamic(() =>
@@ -16,51 +18,91 @@ const LockClosedIcon = dynamic(() =>
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const dispatch = useDispatch();
+  const { isAuthenticated, loading: authLoading, error: authError } = useSelector((state) => state.auth);
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  const hasLoadedRef = useRef(false);
+  const redirectingRef = useRef(false);
 
   useEffect(() => {
-    // نتحقق من المفتاح الخاص بالمشروع
-    const currentUser = JSON.parse(localStorage.getItem("mediSmile_currentUser") || "null");
-    if (currentUser) {
-      // إذا مسجل سابقاً نوجهه للرئيسية
-      router.replace("/");
-    } else {
-      setLoading(false);
+    // لا نحتاج لتحميل المصادقة هنا لأن AppLayout يقوم بذلك
+    // فقط ننتظر حتى يتم التحميل
+    const checkAuth = () => {
+      if (!authLoading) {
+        setLoading(false);
+        hasLoadedRef.current = true;
+      }
+    };
+    
+    checkAuth();
+    // إذا كان التحميل لا يزال جارياً، ننتظر قليلاً
+    if (authLoading) {
+      const timer = setTimeout(() => {
+        setLoading(false);
+        hasLoadedRef.current = true;
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [router]);
+  }, [authLoading]);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    // إذا كان المستخدم مسجل دخول، نوجهه للصفحة الرئيسية
+    // تجنب التوجيه المتكرر
+    if (isAuthenticated && !authLoading && !loading && hasLoadedRef.current && !redirectingRef.current) {
+      redirectingRef.current = true;
+      router.replace("/");
+    }
+  }, [isAuthenticated, authLoading, loading, router]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSubmitting(true);
 
-    if (!username.trim() || !email.trim() || !password) {
-      setError("يرجى إدخال اسم المستخدم، البريد الإلكتروني، وكلمة المرور");
+    // التحقق من البيانات
+    if (!email.trim() || !password) {
+      setError("يرجى إدخال البريد الإلكتروني (أو اسم المستخدم) وكلمة المرور");
+      setSubmitting(false);
       return;
     }
 
-    const users = JSON.parse(localStorage.getItem("mediSmile_users") || "[]");
-    const user = users.find(
-      (u) =>
-        (u.username || u.name || "").trim().toLowerCase() === username.trim().toLowerCase() &&
-        (u.email || "").trim().toLowerCase() === email.trim().toLowerCase() &&
-        u.password === password
-    );
-
-    if (!user) {
-      setError("البيانات غير صحيحة. تحقق من اسم المستخدم، البريد الإلكتروني، وكلمة المرور.");
-      return;
+    try {
+      // استخدام email أو username (API يدعم كليهما)
+      const result = await dispatch(login({ email: email.trim(), password })).unwrap();
+      
+      // إذا نجح تسجيل الدخول، سيتم التوجيه تلقائياً في useEffect
+      if (result) {
+        router.replace("/");
+      }
+    } catch (err) {
+      // عرض رسالة الخطأ
+      const errorMessage = typeof err === "string" ? err : "فشل في تسجيل الدخول. تحقق من بياناتك وحاول مرة أخرى.";
+      setError(errorMessage);
+    } finally {
+      setSubmitting(false);
     }
-
-    localStorage.setItem("mediSmile_currentUser", JSON.stringify(user));
-    window.dispatchEvent(new Event("mediSmile-user-login"));
-    router.replace("/");
   };
 
-  if (loading) return null;
+  if (loading || authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <p className="mt-4 text-gray-600">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    return null; // سيتم التوجيه تلقائياً
+  }
 
   return (
     <div dir="rtl">
@@ -78,26 +120,22 @@ export default function LoginPage() {
             <p className="text-gray-500 text-sm mt-1">سجل دخولك للوصول إلى لوحة التحكم</p>
           </div>
 
-          {error && <p className="text-red-500 text-sm mb-3 text-center">{error}</p>}
+          {(error || authError) && (
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm text-center">{error || authError}</p>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
               <EnvelopeIcon className="h-5 w-5 absolute top-3 right-3 text-blue-500" />
               <input
                 type="text"
-                placeholder="اسم المستخدم"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full pr-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-            <div className="relative">
-              <EnvelopeIcon className="h-5 w-5 absolute top-3 right-3 text-blue-500" />
-              <input
-                type="email"
-                placeholder="البريد الإلكتروني"
+                placeholder="البريد الإلكتروني أو اسم المستخدم"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pr-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
+                disabled={submitting}
+                className="w-full pr-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                required
               />
             </div>
 
@@ -108,24 +146,20 @@ export default function LoginPage() {
                 placeholder="كلمة المرور"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pr-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400"
+                disabled={submitting}
+                className="w-full pr-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                required
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg"
+              disabled={submitting}
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-semibold py-2 rounded-lg transition-colors"
             >
-              تسجيل الدخول
+              {submitting ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
             </button>
 
-            <button
-              type="button"
-              onClick={() => router.push("/register")}
-              className="w-full border border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-2 rounded-lg"
-            >
-              إنشاء حساب جديد
-            </button>
           </form>
         </div>
       </div>

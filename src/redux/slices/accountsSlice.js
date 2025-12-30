@@ -12,10 +12,8 @@ import {
   updateStudent as updateStudentApi,
   deleteStudent as deleteStudentApi,
   fetchUniversityAdmins as fetchUniversityAdminsApi,
-  getUniversityAdminDetails as getUniversityAdminDetailsApi,
   createUniversityAdmin as createUniversityAdminApi,
   updateUniversityAdmin as updateUniversityAdminApi,
-  deleteUniversityAdmin as deleteUniversityAdminApi,
   fetchTechSupport as fetchTechSupportApi,
   getTechSupportDetails as getTechSupportDetailsApi,
   createTechSupport as createTechSupportApi,
@@ -96,7 +94,7 @@ const initialState = {
 /* ──────────── Thunks ──────────── */
 
 // 🔹 جلب قائمة المشرفين
-// GET /api/v1/accounts/supervisors/
+// GET /api/accounts/supervisors/
 export const fetchAccounts = createAsyncThunk(
   "accounts/fetchAccounts",
   async (_, { rejectWithValue }) => {
@@ -185,7 +183,7 @@ export const fetchAccounts = createAsyncThunk(
 );
 
 // 🔹 جلب تفاصيل مشرف واحد
-// GET /api/v1/accounts/supervisors/<user_id>/
+// GET /api/accounts/supervisors/<user_id>/
 export const getAccountDetails = createAsyncThunk(
   "accounts/getAccountDetails",
   async (userId, { rejectWithValue }) => {
@@ -239,7 +237,7 @@ export const getAccountDetails = createAsyncThunk(
 );
 
 // 🔹 إنشاء مشرف جديد
-// POST /api/v1/accounts/supervisors/create/
+// POST /api/accounts/supervisors/create/
 export const createAccount = createAsyncThunk(
   "accounts/createAccount",
   async (newUser, { rejectWithValue }) => {
@@ -360,7 +358,7 @@ export const createAccount = createAsyncThunk(
 );
 
 // 🔹 تحديث حساب دعم تقني
-// PATCH /api/v1/accounts/supervisors/<user_id>/update/
+// PATCH /api/accounts/supervisors/<user_id>/update/
 export const updateAccount = createAsyncThunk(
   "accounts/updateAccount",
   async ({ user_id, updatedData }, { rejectWithValue }) => {
@@ -416,7 +414,7 @@ export const updateAccount = createAsyncThunk(
 );
 
 // 🔹 تحديث بيانات مشرف
-// PATCH /api/v1/accounts/supervisors/<user_id>/update/
+// PATCH /api/accounts/supervisors/<user_id>/update/
 export const updateAccountAsync = createAsyncThunk(
   "accounts/updateAccountAsync",
   async ({ user_id, data }, { rejectWithValue }) => {
@@ -474,7 +472,7 @@ export const updateAccountAsync = createAsyncThunk(
 );
 
 // 🔹 حذف مشرف
-// DELETE /api/v1/accounts/supervisors/<user_id>/delete/
+// DELETE /api/accounts/supervisors/<user_id>/delete/
 export const deleteAccountAsync = createAsyncThunk(
   "accounts/deleteAccountAsync",
   async (user_id, { rejectWithValue }) => {
@@ -497,7 +495,7 @@ export const deleteAccountAsync = createAsyncThunk(
 );
 
 // 🔹 تبديل الحالة (نشط / معطل)
-// PATCH /api/v1/accounts/supervisors/<user_id>/update/
+// PATCH /api/accounts/supervisors/<user_id>/update/
 export const toggleStatusAsync = createAsyncThunk(
   "accounts/toggleStatusAsync",
   async ({ user_id, currentStatus }, { rejectWithValue }) => {
@@ -558,13 +556,14 @@ export const toggleStatusAsync = createAsyncThunk(
 /* ──────────── University Admins Thunks ──────────── */
 
 // 🔹 جلب قائمة مدراء الجامعات
-// GET /api/v1/accounts/university-admins/
+// GET /api/accounts/university-admins/
 export const fetchUniversityAdmins = createAsyncThunk(
   "accounts/fetchUniversityAdmins",
   async (_, { rejectWithValue }) => {
     try {
       const apiResponse = await fetchUniversityAdminsApi();
-      const responseData = apiResponse?.data || apiResponse || [];
+      // API يرجع المصفوفة مباشرة (res.data من axios)
+      const responseData = Array.isArray(apiResponse) ? apiResponse : (apiResponse?.data || []);
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
       if (!Array.isArray(responseData)) {
@@ -600,17 +599,8 @@ export const fetchUniversityAdmins = createAsyncThunk(
             normalizedUserId &&
             (department === null || position === null || phoneNumber === null || !baseEntry.university_name);
 
-          if (needsDetail) {
-            try {
-              const detailResponse = await getUniversityAdminDetailsApi(normalizedUserId);
-              detailData = detailResponse?.data || detailResponse || null;
-              department = department ?? detailData?.department ?? null;
-              position = position ?? detailData?.position ?? null;
-              phoneNumber = phoneNumber ?? resolvePhoneNumber(detailData);
-            } catch (detailError) {
-              console.warn("⚠️ تعذر جلب تفاصيل مدير الجامعة:", normalizedUserId, detailError);
-            }
-          }
+          // تم إزالة getUniversityAdminDetailsApi - غير موجود في API
+          // نستخدم البيانات المتاحة مباشرة من fetchUniversityAdmins
 
           if (detailData) {
             return {
@@ -644,50 +634,11 @@ export const fetchUniversityAdmins = createAsyncThunk(
   }
 );
 
-// 🔹 جلب تفاصيل مدير جامعة
-// GET /api/v1/accounts/university-admins/<user_id>/
-export const getUniversityAdminDetails = createAsyncThunk(
-  "accounts/getUniversityAdminDetails",
-  async (userId, { rejectWithValue }) => {
-    try {
-      const apiResponse = await getUniversityAdminDetailsApi(userId);
-      const responseData = apiResponse?.data || apiResponse;
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-      let responseUserId = responseData.user_id;
-      if (!responseUserId || !uuidRegex.test(responseUserId)) {
-        if (responseData.id && uuidRegex.test(responseData.id)) {
-          responseUserId = responseData.id;
-        } else if (userId && uuidRegex.test(userId)) {
-          responseUserId = userId;
-        } else {
-          throw new Error("لم يتم إرجاع UUID صحيح من السيرفر");
-        }
-      }
-
-      return {
-        ...responseData,
-        user_id: responseUserId,
-        id: responseUserId,
-        original_user_id: responseUserId,
-        has_valid_uuid: true,
-        university: responseData.university || responseData.university_id || null,
-        university_id: responseData.university || responseData.university_id || null,
-        university_name: responseData.university_name || null,
-      };
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        err.message ||
-        "فشل في جلب تفاصيل مدير الجامعة";
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
+// 🔹 جلب تفاصيل مدير جامعة - تم إزالة هذا الـ endpoint لأنه غير موجود في API
+// يمكن استخدام fetchUniversityAdmins للحصول على جميع التفاصيل
 
 // 🔹 إنشاء مدير جامعة جديد
-// POST /api/v1/accounts/university-admins/create/
+// POST /api/accounts/create/university-admin/
 export const createUniversityAdmin = createAsyncThunk(
   "accounts/createUniversityAdmin",
   async (newAdmin, { rejectWithValue }) => {
@@ -723,7 +674,10 @@ export const createUniversityAdmin = createAsyncThunk(
         university_id: createdAdmin.university || createdAdmin.university_id || null,
       };
 
-      console.log("✅ تم إنشاء مدير الجامعة بنجاح:", normalizedAdmin);
+      console.log("✅ تم إنشاء مدير الجامعة بنجاح في Redux:");
+      console.log("📋 البيانات الأصلية من السيرفر:", createdAdmin);
+      console.log("🔄 البيانات المُنظمة:", normalizedAdmin);
+      console.log("🆔 معرف المستخدم المُستخرج:", userId);
       return normalizedAdmin;
     } catch (err) {
       console.error("❌ تفاصيل الخطأ في createUniversityAdmin:", err.response?.data || err.message);
@@ -739,7 +693,7 @@ export const createUniversityAdmin = createAsyncThunk(
 );
 
 // 🔹 تحديث بيانات مدير جامعة
-// PATCH /api/v1/accounts/university-admins/<user_id>/update/
+// PATCH /api/university-admins/<user_id>/
 export const updateUniversityAdmin = createAsyncThunk(
   "accounts/updateUniversityAdmin",
   async ({ user_id, data }, { rejectWithValue }) => {
@@ -781,25 +735,7 @@ export const updateUniversityAdmin = createAsyncThunk(
   }
 );
 
-// 🔹 حذف مدير جامعة
-// DELETE /api/v1/accounts/university-admins/<user_id>/delete/
-export const deleteUniversityAdmin = createAsyncThunk(
-  "accounts/deleteUniversityAdmin",
-  async (user_id, { rejectWithValue }) => {
-    try {
-      await deleteUniversityAdminApi(user_id);
-      return user_id;
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        err.response?.data?.detail ||
-        err.message ||
-        "فشل في حذف مدير الجامعة";
-      return rejectWithValue(errorMessage);
-    }
-  }
-);
+// 🔹 حذف مدير جامعة - تم إزالة هذا الـ endpoint لأنه غير موجود في API
 
 /* ──────────── Tech Support Thunks ──────────── */
 
@@ -866,6 +802,13 @@ export const fetchTechSupport = createAsyncThunk(
 
       return normalizedSupport;
     } catch (err) {
+      // 🔹 معالجة خاصة لخطأ 403 (عدم الصلاحية)
+      if (err.response?.status === 403) {
+        console.warn("⚠️ المستخدم الحالي لا يملك صلاحية لجلب قائمة الدعم التقني");
+        // إرجاع قائمة فارغة بدلاً من خطأ - لن يعطل الواجهة
+        return [];
+      }
+      
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||
@@ -1039,7 +982,7 @@ export const deleteTechSupport = createAsyncThunk(
 /* ──────────── Students Thunks ──────────── */
 
 // 🔹 جلب قائمة الطلاب
-// GET /api/v1/accounts/students/
+// GET /api/accounts/students/
 export const fetchStudents = createAsyncThunk(
   "accounts/fetchStudents",
   async (_, { rejectWithValue }) => {
@@ -1082,7 +1025,7 @@ export const fetchStudents = createAsyncThunk(
 );
 
 // 🔹 جلب تفاصيل طالب واحد
-// GET /api/v1/accounts/students/<user_id>/
+// GET /api/accounts/students/<user_id>/
 export const getStudentDetails = createAsyncThunk(
   "accounts/getStudentDetails",
   async (userId, { rejectWithValue }) => {
@@ -1124,7 +1067,7 @@ export const getStudentDetails = createAsyncThunk(
 );
 
 // 🔹 إنشاء طالب جديد
-// POST /api/v1/accounts/students/create/
+// POST /api/accounts/students/create/
 export const createStudent = createAsyncThunk(
   "accounts/createStudent",
   async (newStudent, { rejectWithValue }) => {
@@ -1176,7 +1119,7 @@ export const createStudent = createAsyncThunk(
 );
 
 // 🔹 تحديث بيانات طالب
-// PATCH /api/v1/accounts/students/<user_id>/update/
+// PATCH /api/accounts/students/<user_id>/update/
 export const updateStudent = createAsyncThunk(
   "accounts/updateStudent",
   async ({ user_id, data }, { rejectWithValue }) => {
@@ -1219,7 +1162,7 @@ export const updateStudent = createAsyncThunk(
 );
 
 // 🔹 حذف طالب
-// DELETE /api/v1/accounts/students/<user_id>/delete/
+// DELETE /api/accounts/students/<user_id>/delete/
 export const deleteStudent = createAsyncThunk(
   "accounts/deleteStudent",
   async (user_id, { rejectWithValue }) => {
@@ -1241,7 +1184,7 @@ export const deleteStudent = createAsyncThunk(
 /* ──────────── Patients Thunks ──────────── */
 
 // 🔹 جلب قائمة المرضى
-// GET /api/v1/accounts/patients/
+// GET /api/accounts/patients/
 export const fetchPatients = createAsyncThunk(
   "accounts/fetchPatients",
   async (_, { rejectWithValue }) => {
@@ -1282,7 +1225,7 @@ export const fetchPatients = createAsyncThunk(
 );
 
 // 🔹 جلب تفاصيل مريض واحد
-// GET /api/v1/accounts/patients/<user_id>/
+// GET /api/accounts/patients/<user_id>/
 export const getPatientDetails = createAsyncThunk(
   "accounts/getPatientDetails",
   async (userId, { rejectWithValue }) => {
@@ -1320,7 +1263,7 @@ export const getPatientDetails = createAsyncThunk(
 );
 
 // 🔹 إنشاء مريض جديد
-// POST /api/v1/accounts/patients/create/
+// POST /api/accounts/patients/create/
 export const createPatient = createAsyncThunk(
   "accounts/createPatient",
   async (newPatient, { rejectWithValue }) => {
@@ -1418,7 +1361,7 @@ export const createPatient = createAsyncThunk(
 );
 
 // 🔹 تحديث بيانات مريض
-// PATCH /api/v1/accounts/patients/<user_id>/update/
+// PATCH /api/accounts/patients/<user_id>/update/
 export const updatePatient = createAsyncThunk(
   "accounts/updatePatient",
   async ({ user_id, data }, { rejectWithValue }) => {
@@ -1457,7 +1400,7 @@ export const updatePatient = createAsyncThunk(
 );
 
 // 🔹 حذف مريض
-// DELETE /api/v1/accounts/patients/<user_id>/delete/
+// DELETE /api/accounts/patients/<user_id>/delete/
 export const deletePatient = createAsyncThunk(
   "accounts/deletePatient",
   async (user_id, { rejectWithValue }) => {
@@ -1733,26 +1676,6 @@ const accountsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // 🔸 Get University Admin Details
-      .addCase(getUniversityAdminDetails.pending, (state) => {
-        state.operationLoading = true;
-        state.operationError = null;
-      })
-      .addCase(getUniversityAdminDetails.fulfilled, (state, action) => {
-        state.operationLoading = false;
-        state.operationError = null;
-        const payloadKey = resolveEntityKey(action.payload);
-        const index = state.universityAdmins.findIndex((a) => resolveEntityKey(a) === payloadKey);
-        if (index !== -1) {
-          state.universityAdmins[index] = action.payload;
-        } else {
-          state.universityAdmins.push(action.payload);
-        }
-      })
-      .addCase(getUniversityAdminDetails.rejected, (state, action) => {
-        state.operationLoading = false;
-        state.operationError = action.payload;
-      })
       // 🔸 Create University Admin
       .addCase(createUniversityAdmin.pending, (state) => {
         state.operationLoading = true;
@@ -1788,23 +1711,6 @@ const accountsSlice = createSlice({
         }
       })
       .addCase(updateUniversityAdmin.rejected, (state, action) => {
-        state.operationLoading = false;
-        state.operationError = action.payload;
-      })
-      // 🔸 Delete University Admin
-      .addCase(deleteUniversityAdmin.pending, (state) => {
-        state.operationLoading = true;
-        state.operationError = null;
-      })
-      .addCase(deleteUniversityAdmin.fulfilled, (state, action) => {
-        state.operationLoading = false;
-        state.operationError = null;
-        const deletedUserId = action.payload;
-        state.universityAdmins = state.universityAdmins.filter(
-          (a) => resolveEntityKey(a) !== String(deletedUserId)
-        );
-      })
-      .addCase(deleteUniversityAdmin.rejected, (state, action) => {
         state.operationLoading = false;
         state.operationError = action.payload;
       })

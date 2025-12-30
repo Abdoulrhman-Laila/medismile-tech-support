@@ -3,8 +3,10 @@
 import useAccountsPage from "./useAccountsPage";
 import { PageHeader, Card, Button } from "@/components/ui";
 import { UsersRound, AlertCircle } from "lucide-react";
+import { useSelector } from "react-redux";
 
-const roleOrder = ["supervisor", "patient", "student", "university_admin", "tech_support"];
+// 🔹 الأدوار المتاحة في الواجهة
+const roleOrder = ["university_admin"];
 
 export default function AccountsPage() {
   const {
@@ -27,6 +29,9 @@ export default function AccountsPage() {
     universities,
     uuidRegex,
   } = useAccountsPage();
+  
+  // 🔹 الأدوار المتاحة للعرض
+  const availableRoles = roleOrder;
 
   const inputBaseClass = "w-full rounded-xl border border-[#8aa7d6]/45 bg-white/92 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-[#0f1f3f] shadow-[0_2px_6px_rgba(15,31,63,0.04)] outline-none transition-all focus:border-[#2f87f5] focus:shadow-[0_8px_20px_rgba(47,135,245,0.16)] focus:-translate-y-0.5 disabled:bg-[#ecf4ff]/60 disabled:cursor-not-allowed disabled:opacity-70";
   const selectBaseClass = inputBaseClass;
@@ -53,7 +58,7 @@ export default function AccountsPage() {
 
       <Card tone="outline" padding="p-4">
         <div className="flex flex-wrap items-center gap-3">
-          {roleOrder.map((roleKey) => (
+          {availableRoles.map((roleKey) => (
             <Button
               key={roleKey}
               type="button"
@@ -334,218 +339,6 @@ function RoleSpecificFields({
   selectClassName,
   textareaClassName,
 }) {
-  if (activeRole === "supervisor") {
-    return (
-      <>
-        <input
-          name="department"
-          placeholder="القسم"
-          value={formData.department ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <input
-          name="position"
-          placeholder="المنصب"
-          value={formData.position ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <select
-          name="university"
-          value={formData.university ?? ""}
-          onChange={handleChange}
-          className={selectClassName}
-        >
-          <option value="">اختر الجامعة</option>
-          {universities
-            ?.map((u) => {
-              const uniId = u.id;
-              if (!uniId || !uuidRegex.test(uniId)) {
-                console.warn("⚠️ تم تجاهل جامعة بدون UUID صحيح:", u);
-                return null;
-              }
-              return (
-                <option key={uniId} value={uniId}>
-                  {u.name}
-                </option>
-              );
-            })
-            .filter(Boolean)}
-        </select>
-        <input
-          name="phone_number"
-          type="tel"
-          placeholder="رقم الهاتف"
-          value={formData.phone_number ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <input
-          name="license_number"
-          placeholder="رقم الرخصة"
-          value={formData.license_number ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <textarea
-          name="address"
-          placeholder="العنوان"
-          value={formData.address ?? ""}
-          onChange={handleChange}
-          className={`${textareaClassName} col-span-2`}
-        />
-        <input
-          name="profile_picture"
-          type="url"
-          placeholder="رابط صورة الملف الشخصي"
-          value={formData.profile_picture ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-      </>
-    );
-  }
-
-  if (activeRole === "patient") {
-    return (
-      <>
-        <input
-          name="phone_number"
-          type="tel"
-          placeholder="رقم الهاتف"
-          value={formData.phone_number ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <textarea
-          name="address"
-          placeholder="العنوان"
-          value={formData.address ?? ""}
-          onChange={handleChange}
-          className={`${textareaClassName} col-span-2`}
-        />
-        <input
-          name="profile_picture"
-          type="url"
-          placeholder="رابط صورة الملف الشخصي"
-          value={formData.profile_picture ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <textarea
-          name="medical_history"
-          placeholder="التاريخ الطبي"
-          value={formData.medical_history ?? ""}
-          onChange={handleChange}
-          className={`${textareaClassName} col-span-2`}
-        />
-        <textarea
-          name="allergies"
-          placeholder="الحساسية"
-          value={formData.allergies ?? ""}
-          onChange={handleChange}
-          className={`${textareaClassName} col-span-2`}
-        />
-        <textarea
-          name="medications"
-          placeholder="الأدوية"
-          value={formData.medications ?? ""}
-          onChange={handleChange}
-          className={`${textareaClassName} col-span-2`}
-        />
-        <input
-          name="emergency_contact_name"
-          placeholder="اسم جهة الاتصال للطوارئ"
-          value={formData.emergency_contact_name ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <input
-          name="emergency_contact_phone"
-          placeholder="رقم جهة الاتصال للطوارئ"
-          value={formData.emergency_contact_phone ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-      </>
-    );
-  }
-
-  if (activeRole === "student") {
-    return (
-      <>
-        <select
-          name="university"
-          value={formData.university ?? ""}
-          onChange={handleChange}
-          className={selectClassName}
-        >
-          <option value="">اختر الجامعة</option>
-          {universities
-            ?.map((u) => {
-              const uniId = u.id;
-              if (!uniId || !uuidRegex.test(uniId)) {
-                console.warn("⚠️ تم تجاهل جامعة بدون UUID صحيح:", u);
-                return null;
-              }
-              return (
-                <option key={uniId} value={uniId}>
-                  {u.name}
-                </option>
-              );
-            })
-            .filter(Boolean)}
-        </select>
-        <input
-          name="student_id"
-          placeholder="الرقم الجامعي"
-          value={formData.student_id ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <input
-          name="year_of_study"
-          type="number"
-          placeholder="السنة الدراسية"
-          value={formData.year_of_study ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-          min="1"
-        />
-        <input
-          name="specialization"
-          placeholder="التخصص"
-          value={formData.specialization ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <input
-          name="phone_number"
-          type="tel"
-          placeholder="رقم الهاتف"
-          value={formData.phone_number ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <textarea
-          name="address"
-          placeholder="العنوان"
-          value={formData.address ?? ""}
-          onChange={handleChange}
-          className={`${textareaClassName} col-span-2`}
-        />
-        <input
-          name="profile_picture"
-          type="url"
-          placeholder="رابط صورة الملف الشخصي"
-          value={formData.profile_picture ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-      </>
-    );
-  }
 
   if (activeRole === "university_admin") {
     return (
@@ -572,50 +365,6 @@ function RoleSpecificFields({
             })
             .filter(Boolean)}
         </select>
-        <input
-          name="department"
-          placeholder="القسم"
-          value={formData.department ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <input
-          name="position"
-          placeholder="المنصب"
-          value={formData.position ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <input
-          name="phone_number"
-          type="tel"
-          placeholder="رقم الهاتف"
-          value={formData.phone_number ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-        <textarea
-          name="address"
-          placeholder="العنوان"
-          value={formData.address ?? ""}
-          onChange={handleChange}
-          className={`${textareaClassName} col-span-2`}
-        />
-        <input
-          name="profile_picture"
-          type="url"
-          placeholder="رابط صورة الملف الشخصي"
-          value={formData.profile_picture ?? ""}
-          onChange={handleChange}
-          className={inputClassName}
-        />
-      </>
-    );
-  }
-
-  if (activeRole === "tech_support") {
-    return (
-      <>
         <input
           name="department"
           placeholder="القسم"
@@ -663,50 +412,10 @@ function RoleSpecificFields({
 function RoleTableHeaders({ activeRole }) {
   const thClass = "px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm";
   
-  if (activeRole === "supervisor") {
-    return (
-      <>
-        <th className={`${thClass} hidden lg:table-cell`}>الجامعة</th>
-        <th className={thClass}>القسم</th>
-        <th className={`${thClass} hidden xl:table-cell`}>رقم الهاتف</th>
-      </>
-    );
-  }
-
-  if (activeRole === "patient") {
-    return (
-      <>
-        <th className={`${thClass} hidden xl:table-cell`}>رقم الهاتف</th>
-        <th className={thClass}>الجنس</th>
-      </>
-    );
-  }
-
-  if (activeRole === "student") {
-    return (
-      <>
-        <th className={`${thClass} hidden lg:table-cell`}>الجامعة</th>
-        <th className={thClass}>الرقم الجامعي</th>
-        <th className={`${thClass} hidden xl:table-cell`}>السنة الدراسية</th>
-        <th className={`${thClass} hidden 2xl:table-cell`}>التخصص</th>
-      </>
-    );
-  }
-
   if (activeRole === "university_admin") {
     return (
       <>
         <th className={`${thClass} hidden lg:table-cell`}>الجامعة</th>
-        <th className={thClass}>القسم</th>
-        <th className={`${thClass} hidden xl:table-cell`}>المنصب</th>
-        <th className={`${thClass} hidden 2xl:table-cell`}>رقم الهاتف</th>
-      </>
-    );
-  }
-
-  if (activeRole === "tech_support") {
-    return (
-      <>
         <th className={thClass}>القسم</th>
         <th className={`${thClass} hidden xl:table-cell`}>المنصب</th>
         <th className={`${thClass} hidden 2xl:table-cell`}>رقم الهاتف</th>
@@ -722,33 +431,6 @@ function RoleTableCells({ activeRole, user, isCard = false }) {
   
   if (isCard) {
     // عرض كبطاقة للشاشات الصغيرة
-    if (activeRole === "supervisor") {
-      return (
-        <div className="space-y-1.5 text-sm text-[#3f4a5f]">
-          {user?.university_name && <p>🏫 {user.university_name}</p>}
-          {user?.department && <p>📁 {user.department}</p>}
-          {user?.phone_number && <p>📞 {user.phone_number}</p>}
-        </div>
-      );
-    }
-    if (activeRole === "patient") {
-      return (
-        <div className="space-y-1.5 text-sm text-[#3f4a5f]">
-          {user?.phone_number && <p>📞 {user.phone_number}</p>}
-          {user?.gender && <p>👤 {user.gender}</p>}
-        </div>
-      );
-    }
-    if (activeRole === "student") {
-      return (
-        <div className="space-y-1.5 text-sm text-[#3f4a5f]">
-          {user?.university_name && <p>🏫 {user.university_name}</p>}
-          {user?.student_id && <p>🎓 {user.student_id}</p>}
-          {user?.year_of_study && <p>📅 السنة: {user.year_of_study}</p>}
-          {user?.specialization && <p>📚 {user.specialization}</p>}
-        </div>
-      );
-    }
     if (activeRole === "university_admin") {
       return (
         <div className="space-y-1.5 text-sm text-[#3f4a5f]">
@@ -759,65 +441,14 @@ function RoleTableCells({ activeRole, user, isCard = false }) {
         </div>
       );
     }
-    if (activeRole === "tech_support") {
-      return (
-        <div className="space-y-1.5 text-sm text-[#3f4a5f]">
-          {user?.department && <p>📁 {user.department}</p>}
-          {user?.position && <p>💼 {user.position}</p>}
-          {user?.phone_number && <p>📞 {user.phone_number}</p>}
-        </div>
-      );
-    }
     return null;
   }
 
   // عرض كجدول للشاشات الكبيرة
-  if (activeRole === "supervisor") {
-    return (
-      <>
-        <td className={`${tdClass} hidden lg:table-cell`}>{user?.university_name || "غير محددة"}</td>
-        <td className={tdClass}>{user?.department || "—"}</td>
-        <td className={`${tdClass} hidden xl:table-cell`}>{user?.phone_number || "—"}</td>
-      </>
-    );
-  }
-
-  if (activeRole === "patient") {
-    return (
-      <>
-        <td className={`${tdClass} hidden xl:table-cell`}>{user?.phone_number || "—"}</td>
-        <td className={tdClass}>{user?.gender || "—"}</td>
-      </>
-    );
-  }
-
-  if (activeRole === "student") {
-    return (
-      <>
-        <td className={`${tdClass} hidden lg:table-cell`}>{user?.university_name || "غير محددة"}</td>
-        <td className={tdClass}>{user?.student_id || "—"}</td>
-        <td className={`${tdClass} hidden xl:table-cell`}>
-          {user?.year_of_study === null || user?.year_of_study === undefined ? "—" : user?.year_of_study}
-        </td>
-        <td className={`${tdClass} hidden 2xl:table-cell`}>{user?.specialization || "—"}</td>
-      </>
-    );
-  }
-
   if (activeRole === "university_admin") {
     return (
       <>
         <td className={`${tdClass} hidden lg:table-cell`}>{user?.university_name || "غير محددة"}</td>
-        <td className={tdClass}>{user?.department || "—"}</td>
-        <td className={`${tdClass} hidden xl:table-cell`}>{user?.position || "—"}</td>
-        <td className={`${tdClass} hidden 2xl:table-cell`}>{user?.phone_number || "—"}</td>
-      </>
-    );
-  }
-
-  if (activeRole === "tech_support") {
-    return (
-      <>
         <td className={tdClass}>{user?.department || "—"}</td>
         <td className={`${tdClass} hidden xl:table-cell`}>{user?.position || "—"}</td>
         <td className={`${tdClass} hidden 2xl:table-cell`}>{user?.phone_number || "—"}</td>

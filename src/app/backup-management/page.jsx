@@ -1,262 +1,280 @@
+
 "use client";
 
-import { useSelector, useDispatch } from "react-redux";
-import {
-  addBackup,
-  updateBackupStatus,
-  deleteBackup,
-  setAutoBackup,
-} from "@/redux/slices/backupSlice";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { PageHeader, Card, Button } from "@/components/ui";
-import { HardDrive, UploadCloud, PlusCircle, RefreshCcw, Download, Trash2 } from "lucide-react";
+import { HardDrive, RefreshCcw } from "lucide-react";
+
+import {
+  fetchBackupsThunk,
+  createBackupThunk,
+  restoreBackupThunk,
+  clearError,
+  clearOperationError,
+} from "@/redux/slices/backupSlice";
 
 export default function BackupManagementPage() {
   const dispatch = useDispatch();
-  const { backups, autoBackup } = useSelector((state) => state.backups);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [selectedBackup, setSelectedBackup] = useState(null);
+  const [backupForm, setBackupForm] = useState({
+    backup_type: "full",
+    description: "",
+  });
+  const [restoreType, setRestoreType] = useState("FULL");
 
-  // إنشاء نسخة جديدة
-  const createBackup = () => {
-    const newBackup = {
-      id: backups.length + 1,
-      date: new Date().toLocaleString(),
-      size: `${(Math.random() * 2).toFixed(2)} GB`,
-      status: "قيد التنفيذ",
-    };
-    dispatch(addBackup(newBackup));
+  const {
+    backups,
+    loading,
+    error,
+    operationLoading,
+    operationError,
+  } = useSelector((state) => state.backups);
 
-    setTimeout(() => {
-      dispatch(updateBackupStatus({ id: newBackup.id, status: "ناجحة" }));
-    }, 2000);
+  /* ──────────── Load backups ──────────── */
+  useEffect(() => {
+    dispatch(fetchBackupsThunk());
+  }, [dispatch]);
+
+  /* ──────────── Handlers ──────────── */
+  const handleCreateBackup = async () => {
+    try {
+      await dispatch(createBackupThunk(backupForm)).unwrap();
+      setShowCreateModal(false);
+      setBackupForm({ backup_type: "full", description: "" });
+      dispatch(fetchBackupsThunk());
+    } catch (_) {}
   };
 
-  // استعادة نسخة
-  const restoreBackup = (id) => {
-    alert(`🔄 جاري استعادة النسخة رقم ${id} ...`);
-  };
-
-  // حذف نسخة
-  const handleDelete = (id) => {
-    dispatch(deleteBackup(id));
-  };
-
-  // تنزيل نسخة
-  const downloadBackup = (backup) => {
-    alert(`⬇️ جاري تنزيل النسخة رقم ${backup.id} بحجم ${backup.size}`);
-  };
-
-  // رفع نسخة يدوياً
-  const uploadBackup = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const newBackup = {
-      id: backups.length + 1,
-      date: new Date().toLocaleString(),
-      size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-      status: "ناجحة",
-      name: file.name,
-    };
-    dispatch(addBackup(newBackup));
-  };
-
-  const lastBackup = backups.length ? backups[backups.length - 1] : null;
-  const headerMeta = [
-    { label: "إجمالي النسخ", value: backups.length },
-    { label: "النسخ التلقائي", value: autoBackup },
-    lastBackup && { label: "آخر نسخة", value: lastBackup.date },
-  ].filter(Boolean);
-
-  const selectBaseClass = "w-full rounded-xl border border-[#8aa7d6]/45 bg-white/92 px-3 py-2.5 sm:px-4 sm:py-3 text-sm text-[#0f1f3f] shadow-[0_2px_6px_rgba(15,31,63,0.04)] outline-none transition-all focus:border-[#2f87f5] focus:shadow-[0_8px_20px_rgba(47,135,245,0.16)] focus:-translate-y-0.5";
-
-  const statusTone = (status) => {
-    if (status === "ناجحة") return "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[rgba(48,185,128,0.12)] text-[#1f8d62]";
-    if (status === "قيد التنفيذ") return "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[rgba(43,164,240,0.16)] text-[#1c7db5]";
-    if (status === "فشلت") return "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[rgba(234,84,85,0.16)] text-[#a73536]";
-    return "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[rgba(248,178,60,0.16)] text-[#b4731f]";
+  const handleRestoreBackup = async () => {
+    if (!selectedBackup) return;
+    try {
+      await dispatch(restoreBackupThunk({ backupId: selectedBackup.id, restoreType })).unwrap();
+      setShowRestoreModal(false);
+      setSelectedBackup(null);
+      setRestoreType("FULL");
+      dispatch(fetchBackupsThunk());
+    } catch (_) {}
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6" dir="rtl">
-      <PageHeader
-        title="إدارة النسخ الاحتياطية"
-        description="تابع حالة النسخ الاحتياطية، أنشئ نسخاً جديدة، واضبط جداول النسخ التلقائي لحماية بياناتك."
-        meta={headerMeta}
-        actions={
-          <div className="flex items-center gap-3">
-            <Button variant="primary" icon={PlusCircle} onClick={createBackup}>
-              إنشاء نسخة جديدة
-            </Button>
-            <Button as="label" variant="secondary" icon={UploadCloud}>
-              رفع نسخة
-              <input type="file" onChange={uploadBackup} className="hidden" />
-            </Button>
-          </div>
-        }
-      />
-
-      <Card
-        title="النسخ المتوفرة"
-        description="تعرف على حالة كل نسخة احتياطية وتحكم بها بسهولة."
-        icon={HardDrive}
+    <ProtectedRoute>
+      <div
+        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6"
+        dir="rtl"
       >
-        {/* جدول للشاشات الكبيرة */}
-        <div className="hidden lg:block rounded-2xl bg-gradient-to-br from-white/98 to-[#dde8ff]/92 border border-[#d6e4ff]/45 shadow-[0_6px_18px_rgba(39,86,133,0.08)] overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="bg-gradient-to-r from-[#1d72dd] to-[#2f87f5] text-white">
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm">رقم النسخة</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm">التاريخ</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm">الحجم</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-center text-xs sm:text-sm">الحالة</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-center text-xs sm:text-sm">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {backups.length ? (
-                  backups.map((backup) => (
-                    <tr key={backup.id} className="border-b border-[#d6e4ff]/60 hover:bg-[#d6e4ff]/65 transition-colors even:bg-[#ecf4ff]/45">
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-[#1d72dd]">#{backup.id}</td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-[#3f4a5f]">{backup.date}</td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-[#3f4a5f]">{backup.size}</td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-center">
-                        <span className={statusTone(backup.status)}>{backup.status}</span>
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5">
-                        <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            icon={RefreshCcw}
-                            onClick={() => restoreBackup(backup.id)}
-                            className="text-xs sm:text-sm"
-                          >
-                            استعادة
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            icon={Download}
-                            onClick={() => downloadBackup(backup)}
-                            className="text-xs sm:text-sm"
-                          >
-                            تنزيل
-                          </Button>
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            icon={Trash2}
-                            onClick={() => handleDelete(backup.id)}
-                            className="text-xs sm:text-sm"
-                          >
-                            حذف
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-16 sm:py-20 text-center">
-                      <div className="flex flex-col items-center justify-center gap-3 text-center">
-                        <HardDrive className="h-10 w-10 sm:h-12 sm:w-12 text-[#2f87f5]" />
-                        <p className="text-base sm:text-lg font-semibold text-[#0f1f3f]">لا توجد نسخ احتياطية حالياً</p>
-                        <p className="text-sm sm:text-base text-[#6b7a94]">ابدأ بإنشاء نسخة جديدة</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <PageHeader
+          title="إدارة النسخ الاحتياطي"
+          description="عرض النسخ الاحتياطية للنظام وإنشاء نسخ جديدة."
+          icon={HardDrive}
+          actions={
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                icon={RefreshCcw}
+                onClick={() => dispatch(fetchBackupsThunk())}
+                disabled={loading || operationLoading}
+              >
+                تحديث
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                icon={HardDrive}
+                onClick={() => setShowCreateModal(true)}
+                disabled={operationLoading}
+              >
+                إنشاء نسخة احتياطية
+              </Button>
+            </div>
+          }
+        />
 
-        {/* بطاقات للشاشات الصغيرة والمتوسطة */}
-        <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {backups.length ? (
-            backups.map((backup) => (
-              <div key={backup.id} className="bg-white rounded-xl border border-[#d6e4ff]/70 p-4 shadow-sm">
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-xs text-[#6b7a94]">نسخة رقم</p>
-                      <h3 className="text-base font-semibold text-[#0f1f3f]">#{backup.id}</h3>
-                    </div>
-                    <span className={statusTone(backup.status)}>{backup.status}</span>
-                  </div>
-                  <div className="space-y-1.5 text-sm text-[#3f4a5f]">
-                    <p>📅 {backup.date}</p>
-                    <p>💾 {backup.size}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      icon={RefreshCcw}
-                      onClick={() => restoreBackup(backup.id)}
-                      className="text-xs flex-1 sm:flex-none"
-                    >
-                      استعادة
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      icon={Download}
-                      onClick={() => downloadBackup(backup)}
-                      className="text-xs flex-1 sm:flex-none"
-                    >
-                      تنزيل
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      icon={Trash2}
-                      onClick={() => handleDelete(backup.id)}
-                      className="text-xs flex-1 sm:flex-none"
-                    >
-                      حذف
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-full px-4 py-12 text-center">
-              <div className="flex flex-col items-center justify-center gap-3">
-                <HardDrive className="h-10 w-10 text-[#2f87f5]" />
-                <p className="text-base font-semibold text-[#0f1f3f]">لا توجد نسخ احتياطية حالياً</p>
-                <p className="text-sm text-[#6b7a94]">ابدأ بإنشاء نسخة جديدة</p>
-              </div>
+        {(error || operationError) && (
+          <Card tone="danger">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-red-700">
+                {error || operationError}
+              </p>
+              <Button
+                size="xs"
+                variant="ghost"
+                onClick={() => {
+                  if (error) dispatch(clearError());
+                  if (operationError) dispatch(clearOperationError());
+                }}
+              >
+                إغلاق
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        <Card
+          title="سجل النسخ الاحتياطية"
+          description="قائمة بجميع النسخ الاحتياطية التي تم إنشاؤها."
+          tone="outline"
+        >
+          {loading && (
+            <p className="text-sm text-gray-500">
+              جاري تحميل النسخ الاحتياطية...
+            </p>
+          )}
+
+          {!loading && backups.length === 0 && (
+            <p className="text-sm text-gray-500">
+              لا توجد نسخ احتياطية حتى الآن.
+            </p>
+          )}
+
+          {!loading && backups.length > 0 && (
+            <div className="overflow-x-auto mt-4">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-right font-semibold">النوع</th>
+                    <th className="px-3 py-2 text-right font-semibold">الحالة</th>
+                    <th className="px-3 py-2 text-right font-semibold">المصدر</th>
+                    <th className="px-3 py-2 text-right font-semibold">أنشأه</th>
+                    <th className="px-3 py-2 text-right font-semibold">الحجم الكلي</th>
+                    <th className="px-3 py-2 text-right font-semibold">تاريخ الإنشاء</th>
+                    <th className="px-3 py-2 text-right font-semibold">المدة</th>
+                    <th className="px-3 py-2 text-right font-semibold">الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y bg-white">
+                  {backups.map((b, index) => {
+                    return (
+                      <tr key={b.id || `backup-${index}`} className="hover:bg-gray-50">
+                        <td className="px-3 py-2">
+                          <span className="inline-flex items-center rounded-full bg-[#ecf4ff] px-2 py-0.5 text-xs text-[#1d72dd]">
+                            {b.backup_type || "—"}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${
+                            b.status === "completed" || b.status === "COMPLETED" ? "bg-green-100 text-green-800" :
+                            b.status === "failed" || b.status === "FAILED" ? "bg-red-100 text-red-800" :
+                            b.status === "pending" || b.status === "PENDING" ? "bg-yellow-100 text-yellow-800" :
+                            b.status === "in_progress" || b.status === "IN_PROGRESS" ? "bg-blue-100 text-blue-800" :
+                            "bg-gray-100 text-gray-800"
+                          }`}>
+                            {b.status || "—"}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2">{b.trigger_source || "—"}</td>
+                        <td className="px-3 py-2">{b.created_by || "—"}</td>
+                        <td className="px-3 py-2">
+                          {b.total_size_display || b.total_size 
+                            ? (b.total_size_display || `${(b.total_size / (1024 * 1024)).toFixed(2)} MB`)
+                            : "—"}
+                        </td>
+                        <td className="px-3 py-2">
+                          {b.created_at
+                            ? new Date(b.created_at).toLocaleString("ar-SA")
+                            : "—"}
+                        </td>
+                        <td className="px-3 py-2">
+                          {b.duration_display || b.duration || "—"}
+                        </td>
+                        <td className="px-3 py-2">
+                          {(b.status === "completed" || b.status === "COMPLETED") && (
+                            <Button
+                              variant="outline"
+                              size="xs"
+                              onClick={() => {
+                                setSelectedBackup(b);
+                                setShowRestoreModal(true);
+                              }}
+                              disabled={operationLoading}
+                            >
+                              استعادة
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
-        </div>
-      </Card>
+        </Card>
 
-      <Card
-        title="إعدادات النسخ التلقائي"
-        description="اضبط تكرار النسخ التلقائي لضمان وجود نسخة حديثة دائماً."
-        icon={RefreshCcw}
-        footer={
-          <p className="text-sm text-[#6b7a94]">
-            📌 حالياً النسخ التلقائي مضبوط على{" "}
-            <span className="font-semibold text-[#0f1f3f]">{autoBackup}</span>
-          </p>
-        }
-      >
-        <div className="max-w-sm space-y-3">
-          <label className="text-sm font-medium text-[#3f4a5f]">
-            اختر تكرار النسخ التلقائي
-          </label>
-          <select
-            value={autoBackup}
-            onChange={(e) => dispatch(setAutoBackup(e.target.value))}
-            className={selectBaseClass}
-          >
-            <option value="يومي">يومي</option>
-            <option value="أسبوعي">أسبوعي</option>
-            <option value="شهري">شهري</option>
-          </select>
-        </div>
-      </Card>
-    </div>
+        {/* Modal إنشاء نسخة احتياطية */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowCreateModal(false)}>
+            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-lg font-semibold mb-4">إنشاء نسخة احتياطية جديدة</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">نوع النسخة</label>
+                  <select
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2"
+                    value={backupForm.backup_type}
+                    onChange={(e) => setBackupForm({ ...backupForm, backup_type: e.target.value })}
+                  >
+                    <option value="full">Full</option>
+                    <option value="incremental">Incremental</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">الوصف (اختياري)</label>
+                  <textarea
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2"
+                    rows={3}
+                    value={backupForm.description}
+                    onChange={(e) => setBackupForm({ ...backupForm, description: e.target.value })}
+                  />
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="ghost" onClick={() => setShowCreateModal(false)}>إلغاء</Button>
+                  <Button variant="primary" onClick={handleCreateBackup} disabled={operationLoading}>
+                    إنشاء
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal استعادة نسخة احتياطية */}
+        {showRestoreModal && selectedBackup && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowRestoreModal(false)}>
+            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-lg font-semibold mb-4">استعادة نسخة احتياطية</h3>
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  هل أنت متأكد من استعادة النسخة الاحتياطية؟
+                  <br />
+                  <span className="font-medium">المعرف: {selectedBackup.id}</span>
+                </p>
+                <div>
+                  <label className="block text-sm font-medium mb-1">نوع الاستعادة</label>
+                  <select
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2"
+                    value={restoreType}
+                    onChange={(e) => setRestoreType(e.target.value)}
+                  >
+                    <option value="FULL">FULL</option>
+                    <option value="INCREMENTAL">INCREMENTAL</option>
+                  </select>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="ghost" onClick={() => setShowRestoreModal(false)}>إلغاء</Button>
+                  <Button variant="primary" onClick={handleRestoreBackup} disabled={operationLoading}>
+                    استعادة
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </ProtectedRoute>
   );
 }

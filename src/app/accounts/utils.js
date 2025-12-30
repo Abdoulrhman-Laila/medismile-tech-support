@@ -5,19 +5,11 @@ const uuidPattern = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 export const uuidRegex = new RegExp(`^${uuidPattern}$`, "i");
 
 export const roleLabels = {
-  supervisor: "المشرفين",
-  patient: "المرضى",
-  student: "الطلاب",
   university_admin: "مدراء الجامعات",
-  tech_support: "الدعم التقني",
 };
 
 export const addActionLabels = {
-  supervisor: "إضافة مشرف",
-  patient: "إضافة مريض",
-  student: "إضافة طالب",
   university_admin: "إضافة مدير جامعة",
-  tech_support: "إضافة دعم تقني",
 };
 
 const baseUserFields = {
@@ -37,43 +29,16 @@ const baseUserFields = {
 };
 
 export const initialForms = {
-  supervisor: {
-    ...baseUserFields,
-    department: "",
-    position: "",
-    university: "",
-    license_number: "",
-  },
-  patient: {
-    ...baseUserFields,
-    medical_history: "",
-    allergies: "",
-    medications: "",
-    emergency_contact_name: "",
-    emergency_contact_phone: "",
-  },
-  student: {
-    ...baseUserFields,
-    university: "",
-    student_id: "",
-    year_of_study: "",
-    specialization: "",
-  },
   university_admin: {
     ...baseUserFields,
     university: "",
     department: "",
     position: "",
   },
-  tech_support: {
-    ...baseUserFields,
-    department: "",
-    position: "",
-  },
 };
 
 export const getInitialFormData = (role) => ({
-  ...(initialForms[role] || initialForms.supervisor),
+  ...(initialForms[role] || initialForms.university_admin),
 });
 
 export const sanitizeValue = (value) => {

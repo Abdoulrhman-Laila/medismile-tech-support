@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://medismile1-production.up.railway.app/api/v1").replace(/\/+$/, "");
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://medi-smile1.onrender.com/api").replace(/\/+$/, "");
 
 // إنشاء axios instance خاص بالمقررات
 const coursesAxiosInstance = axios.create({

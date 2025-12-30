@@ -15,18 +15,30 @@ import {
   Cpu,
   Menu,
   X,
+  MessageSquare,
 } from "lucide-react";
 
 const menuItems = [
   { name: "الرئيسية", href: "/", icon: Home },
   { name: "إدارة الجامعات", href: "/universities", icon: University },
-  { name: "إدارة الدفع", href: "/payments", icon: CreditCard },
   { name: "إدارة النسخ الاحتياطي", href: "/backup-management", icon: HardDrive },
   { name: "إدارة الحسابات", href: "/accounts", icon: Users },
+  { name: "تذاكر الدعم الفني", href: "/support", icon: MessageSquare },
+  { name: "سجلات التدقيق", href: "/audit", icon: FileText },
   { name: "إدارة السجلات التقنية", href: "/systemlogs", icon: FileText },
+  { name: "الحالات السريرية", href: "/cases", icon: FileText },
+  { name: "المواعيد", href: "/appointments", icon: FileText },
+  { name: "المحتوى المجتمعي", href: "/community", icon: FileText },
+  { name: "المرفقات", href: "/attachments", icon: FileText },
+  { name: "المراسلات", href: "/messaging", icon: FileText },
   { name: "إدارة الأعطال التقنية", href: "/TechnicalFault", icon: AlertTriangle },
   { name: "إدارة التحديثات التقنية", href: "/TechnicalUpdates", icon: RefreshCcw },
   { name: "مراقبة أداء النظام", href: "/SystemMonitoring", icon: Cpu },
+  { name: "إدارة التقارير", href: "/reports", icon: FileText },
+  { name: "الإشعارات", href: "/notifications", icon: FileText },
+  { name: "التقييمات", href: "/evaluations", icon: FileText },
+  { name: "تشخيصات الذكاء الاصطناعي", href: "/ai-diagnoses", icon: FileText },
+  { name: "الملف الشخصي", href: "/profile", icon: Users },
 ];
 
 export default function Sidebar() {

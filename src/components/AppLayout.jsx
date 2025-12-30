@@ -1,15 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { useDispatch } from "react-redux";
 import PageLoader from "./PageLoader";
 import Sidebar from "./Sidebar";
 import { motion, AnimatePresence } from "framer-motion";
+import { loadAuthFromStorage } from "@/redux/slices/authSlice";
 
 export default function AppLayout({ children }) {
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [isRtl, setIsRtl] = useState(true);
   const pathname = usePathname();
+  const authLoadedRef = useRef(false);
+
+  // تحميل بيانات المصادقة مرة واحدة فقط عند تحميل التطبيق
+  useEffect(() => {
+    if (!authLoadedRef.current) {
+      authLoadedRef.current = true;
+      dispatch(loadAuthFromStorage());
+    }
+  }, [dispatch]);
 
   // عند تغيّر المسار (بعد التنقل)
   useEffect(() => {

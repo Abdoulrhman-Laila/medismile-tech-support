@@ -2,7 +2,7 @@ import accountsAxios from "./accountsAxios";
 
 /**
  * 🔹 جلب قائمة المشرفين (الدعم التقني)
- * GET /api/v1/accounts/supervisors/
+ * GET /api/accounts/supervisors/
  * @returns {Promise} Response data with status, message, and data array
  */
 export const fetchSupervisors = async () => {
@@ -18,7 +18,7 @@ export const fetchSupervisors = async () => {
 
 /**
  * 🔹 جلب تفاصيل مشرف واحد
- * GET /api/v1/accounts/supervisors/<user_id>/
+ * GET /api/accounts/supervisors/<user_id>/
  * @param {string} userId - معرف المستخدم (UUID)
  * @returns {Promise} Response data with status, message, and data object
  */
@@ -35,7 +35,7 @@ export const getSupervisorDetails = async (userId) => {
 
 /**
  * 🔹 إنشاء حساب مشرف جديد (الدعم التقني)
- * POST /api/v1/accounts/supervisors/create/
+ * POST /api/accounts/supervisors/create/
  * @param {Object} data - بيانات المشرف الجديد
  * @param {string} data.username - اسم المستخدم (مطلوب)
  * @param {string} data.email - البريد الإلكتروني (مطلوب)
@@ -62,7 +62,7 @@ export const createSupervisor = async (data) => {
 
 /**
  * 🔹 تحديث حساب مشرف (الدعم التقني)
- * PATCH /api/v1/accounts/supervisors/<user_id>/update/
+ * PATCH /api/accounts/supervisors/<user_id>/update/
  * @param {string} userId - معرف المستخدم (UUID)
  * @param {Object} data - البيانات المراد تحديثها (تحديث جزئي)
  * @param {string} [data.phone_number] - رقم الهاتف
@@ -90,7 +90,7 @@ export const updateSupervisor = async (userId, data) => {
 
 /**
  * 🔹 حذف حساب مشرف (الدعم التقني)
- * DELETE /api/v1/accounts/supervisors/<user_id>/delete/
+ * DELETE /api/accounts/supervisors/<user_id>/delete/
  * @param {string} userId - معرف المستخدم (UUID)
  * @returns {Promise} Response data with status, message, and data (null)
  */
@@ -107,7 +107,7 @@ export const deleteSupervisor = async (userId) => {
 
 /**
  * 🔹 جلب قائمة الطلاب
- * GET /api/v1/accounts/students/
+ * GET /api/accounts/students/
  * @returns {Promise} Response data with status, message، و data array
  */
 export const fetchStudents = async () => {
@@ -122,7 +122,7 @@ export const fetchStudents = async () => {
 
 /**
  * 🔹 جلب تفاصيل طالب واحد
- * GET /api/v1/accounts/students/<user_id>/
+ * GET /api/accounts/students/<user_id>/
  * @param {string} userId - معرف المستخدم (UUID)
  * @returns {Promise} Response data with status, message، و data object
  */
@@ -138,7 +138,7 @@ export const getStudentDetails = async (userId) => {
 
 /**
  * 🔹 إنشاء طالب جديد
- * POST /api/v1/accounts/students/create/
+ * POST /api/accounts/students/create/
  * @param {Object} data - بيانات الطالب الجديد
  */
 export const createStudent = async (data) => {
@@ -153,7 +153,7 @@ export const createStudent = async (data) => {
 
 /**
  * 🔹 تحديث بيانات طالب
- * PATCH /api/v1/accounts/students/<user_id>/update/
+ * PATCH /api/accounts/students/<user_id>/update/
  * @param {string} userId - معرف المستخدم (UUID)
  * @param {Object} data - البيانات المراد تحديثها
  */
@@ -169,7 +169,7 @@ export const updateStudent = async (userId, data) => {
 
 /**
  * 🔹 حذف طالب
- * DELETE /api/v1/accounts/students/<user_id>/delete/
+ * DELETE /api/accounts/students/<user_id>/delete/
  * @param {string} userId - معرف المستخدم (UUID)
  */
 export const deleteStudent = async (userId) => {
@@ -182,13 +182,14 @@ export const deleteStudent = async (userId) => {
   }
 };
 
+
 /**
  * 🔹 جلب قائمة مدراء الجامعات
- * GET /api/v1/accounts/university-admins/
+ * GET /api/accounts/university/admins/all/
  */
 export const fetchUniversityAdmins = async () => {
   try {
-    const res = await accountsAxios.get("accounts/university-admins/");
+    const res = await accountsAxios.get("accounts/university/admins/all/");
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في جلب قائمة مدراء الجامعات:", error.response?.data || error.message);
@@ -197,26 +198,12 @@ export const fetchUniversityAdmins = async () => {
 };
 
 /**
- * 🔹 جلب تفاصيل مدير جامعة واحد
- * GET /api/v1/accounts/university-admins/<user_id>/
- */
-export const getUniversityAdminDetails = async (userId) => {
-  try {
-    const res = await accountsAxios.get(`accounts/university-admins/${userId}/`);
-    return res.data;
-  } catch (error) {
-    console.error("❌ خطأ في جلب تفاصيل مدير الجامعة:", error.response?.data || error.message);
-    throw error;
-  }
-};
-
-/**
  * 🔹 إنشاء مدير جامعة جديد
- * POST /api/v1/accounts/university-admins/create/
+ * POST /api/accounts/create/university-admin/
  */
 export const createUniversityAdmin = async (data) => {
   try {
-    const res = await accountsAxios.post("accounts/university-admins/create/", data);
+    const res = await accountsAxios.post("accounts/create/university-admin/", data);
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في إنشاء مدير الجامعة:", error.response?.data || error.message);
@@ -226,11 +213,11 @@ export const createUniversityAdmin = async (data) => {
 
 /**
  * 🔹 تحديث بيانات مدير جامعة
- * PATCH /api/v1/accounts/university-admins/<user_id>/update/
+ * PATCH /api/university-admins/<user_id>/
  */
 export const updateUniversityAdmin = async (userId, data) => {
   try {
-    const res = await accountsAxios.patch(`accounts/university-admins/${userId}/update/`, data);
+    const res = await accountsAxios.patch(`university-admins/${userId}/`, data);
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في تحديث مدير الجامعة:", error.response?.data || error.message);
@@ -238,27 +225,14 @@ export const updateUniversityAdmin = async (userId, data) => {
   }
 };
 
-/**
- * 🔹 حذف مدير جامعة
- * DELETE /api/v1/accounts/university-admins/<user_id>/delete/
- */
-export const deleteUniversityAdmin = async (userId) => {
-  try {
-    const res = await accountsAxios.delete(`accounts/university-admins/${userId}/delete/`);
-    return res.data;
-  } catch (error) {
-    console.error("❌ خطأ في حذف مدير الجامعة:", error.response?.data || error.message);
-    throw error;
-  }
-};
 
 /**
  * 🔹 جلب قائمة موظفي الدعم التقني
- * GET /api/v1/accounts/tech-support/
+ * GET /api/accounts/system/tech-support/
  */
 export const fetchTechSupport = async () => {
   try {
-    const res = await accountsAxios.get("accounts/tech-support/");
+    const res = await accountsAxios.get("accounts/system/tech-support/");
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في جلب قائمة الدعم التقني:", error.response?.data || error.message);
@@ -268,11 +242,11 @@ export const fetchTechSupport = async () => {
 
 /**
  * 🔹 جلب تفاصيل موظف دعم تقني واحد
- * GET /api/v1/accounts/tech-support/<user_id>/
+ * GET /api/accounts/system/tech-support/<user_id>/
  */
 export const getTechSupportDetails = async (userId) => {
   try {
-    const res = await accountsAxios.get(`accounts/tech-support/${userId}/`);
+    const res = await accountsAxios.get(`accounts/system/tech-support/${userId}/`);
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في جلب تفاصيل الدعم التقني:", error.response?.data || error.message);
@@ -282,11 +256,11 @@ export const getTechSupportDetails = async (userId) => {
 
 /**
  * 🔹 إنشاء موظف دعم تقني جديد
- * POST /api/v1/accounts/tech-support/create/
+ * POST /api/accounts/system/tech-support/create/
  */
 export const createTechSupport = async (data) => {
   try {
-    const res = await accountsAxios.post("accounts/tech-support/create/", data);
+    const res = await accountsAxios.post("accounts/system/tech-support/create/", data);
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في إنشاء موظف الدعم التقني:", error.response?.data || error.message);
@@ -296,11 +270,11 @@ export const createTechSupport = async (data) => {
 
 /**
  * 🔹 تحديث بيانات موظف دعم تقني
- * PATCH /api/v1/accounts/tech-support/<user_id>/update/
+ * PATCH /api/accounts/system/tech-support/<user_id>/update/
  */
 export const updateTechSupport = async (userId, data) => {
   try {
-    const res = await accountsAxios.patch(`accounts/tech-support/${userId}/update/`, data);
+    const res = await accountsAxios.patch(`accounts/system/tech-support/${userId}/update/`, data);
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في تحديث بيانات الدعم التقني:", error.response?.data || error.message);
@@ -310,14 +284,70 @@ export const updateTechSupport = async (userId, data) => {
 
 /**
  * 🔹 حذف موظف دعم تقني
- * DELETE /api/v1/accounts/tech-support/<user_id>/delete/
+ * DELETE /api/accounts/system/tech-support/<user_id>/delete/
  */
 export const deleteTechSupport = async (userId) => {
   try {
-    const res = await accountsAxios.delete(`accounts/tech-support/${userId}/delete/`);
+    const res = await accountsAxios.delete(`accounts/system/tech-support/${userId}/delete/`);
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في حذف موظف الدعم التقني:", error.response?.data || error.message);
     throw error;
   }
 };
+
+/* ──────────── Authentication APIs ──────────── */
+
+/**
+ * 🔹 تسجيل الدخول
+ * POST /api/accounts/login/tech-support/
+ * @param {Object} credentials - بيانات تسجيل الدخول
+ * @param {string} credentials.email - البريد الإلكتروني أو اسم المستخدم
+ * @param {string} credentials.password - كلمة المرور
+ * @returns {Promise} Response data with tokens and user info
+ */
+export const login = async (credentials) => {
+  try {
+    const res = await accountsAxios.post("accounts/login/tech-support/", credentials);
+    // Response structure: {status, message, data: {tokens: {access, refresh}, user}}
+    return res.data;
+  } catch (error) {
+    console.error("❌ خطأ في تسجيل الدخول:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * 🔹 تسجيل الخروج
+ * POST /api/accounts/logout/tech-support/
+ * @param {string} refreshToken - Refresh token لإلغاء تفعيله
+ * @returns {Promise} Response data with status and message
+ */
+export const logout = async (refreshToken) => {
+  try {
+    const res = await accountsAxios.post("accounts/logout/tech-support/", { refresh: refreshToken });
+    // Response structure: {status, message} or {detail}
+    return res.data;
+  } catch (error) {
+    console.error("❌ خطأ في تسجيل الخروج:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * 🔹 تجديد Access Token
+ * POST /api/token/refresh/
+ * @param {string} refreshToken - Refresh token
+ * @returns {Promise} Response data with new access token
+ */
+export const refreshAccessToken = async (refreshToken) => {
+  try {
+    const res = await accountsAxios.post("token/refresh/", { refresh: refreshToken });
+    // Response structure: {access: "new_access_token"}
+    return res.data;
+  } catch (error) {
+    console.error("❌ خطأ في تجديد Token:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
