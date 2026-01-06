@@ -694,7 +694,7 @@ export const createUniversityAdmin = createAsyncThunk(
 );
 
 // 🔹 تحديث بيانات مدير جامعة
-// PATCH /api/accounts/university-admins/<uuid:user_id>/
+// PATCH /api/accounts/tech-support/university-admins/<user_id>/
 export const updateUniversityAdmin = createAsyncThunk(
   "accounts/updateUniversityAdmin",
   async ({ user_id, data }, { rejectWithValue }) => {
@@ -742,7 +742,7 @@ export const updateUniversityAdmin = createAsyncThunk(
 );
 
 // 🔹 حذف مدير جامعة
-// DELETE /api/accounts/university-admins/<uuid:user_id>/
+// DELETE /api/accounts/tech-support/university-admins/<user_id>/
 export const deleteUniversityAdmin = createAsyncThunk(
   "accounts/deleteUniversityAdmin",
   async (user_id, { rejectWithValue }) => {

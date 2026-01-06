@@ -113,8 +113,33 @@ export const fetchTicketResponses = createAsyncThunk(
   async (ticketId, { rejectWithValue }) => {
     try {
       const apiResponse = await fetchTicketResponsesApi(ticketId);
-      const data = apiResponse?.data ?? apiResponse ?? [];
-      return Array.isArray(data) ? data : [];
+      console.log("📥 استجابة ردود التذكرة:", JSON.stringify(apiResponse, null, 2));
+      
+      // 🔹 معالجة البنية المتداخلة المشابهة للتذاكر
+      let responses = [];
+      
+      // الحالة 1: {count, next, previous, results: {status, message, data: [...]}}
+      if (apiResponse?.results?.data && Array.isArray(apiResponse.results.data)) {
+        responses = apiResponse.results.data;
+        console.log("✅ تم استخراج الردود من results.data:", responses.length);
+      }
+      // الحالة 2: {status, message, data: [...]}
+      else if (apiResponse?.data && Array.isArray(apiResponse.data)) {
+        responses = apiResponse.data;
+        console.log("✅ تم استخراج الردود من data:", responses.length);
+      }
+      // الحالة 3: مصفوفة مباشرة
+      else if (Array.isArray(apiResponse)) {
+        responses = apiResponse;
+        console.log("✅ الردود هي مصفوفة مباشرة:", responses.length);
+      }
+      // الحالة 4: results مباشرة كمصفوفة
+      else if (apiResponse?.results && Array.isArray(apiResponse.results)) {
+        responses = apiResponse.results;
+        console.log("✅ تم استخراج الردود من results:", responses.length);
+      }
+      
+      return responses;
     } catch (err) {
       const errorMessage =
         err.response?.data?.message ||

@@ -213,11 +213,11 @@ export const createUniversityAdmin = async (data) => {
 
 /**
  * 🔹 تحديث بيانات مدير جامعة
- * PATCH /api/accounts/university-admins/<uuid:user_id>/
+ * PATCH /api/accounts/tech-support/university-admins/<user_id>/
  */
 export const updateUniversityAdmin = async (userId, data) => {
   try {
-    const res = await accountsAxios.patch(`accounts/university-admins/${userId}/`, data);
+    const res = await accountsAxios.patch(`accounts/tech-support/university-admins/${userId}/`, data);
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في تحديث مدير الجامعة:", error.response?.data || error.message);
@@ -227,11 +227,11 @@ export const updateUniversityAdmin = async (userId, data) => {
 
 /**
  * 🔹 حذف مدير جامعة
- * DELETE /api/accounts/university-admins/<uuid:user_id>/
+ * DELETE /api/accounts/tech-support/university-admins/<user_id>/
  */
 export const deleteUniversityAdmin = async (userId) => {
   try {
-    const res = await accountsAxios.delete(`accounts/university-admins/${userId}/`);
+    const res = await accountsAxios.delete(`accounts/tech-support/university-admins/${userId}/`);
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في حذف مدير الجامعة:", error.response?.data || error.message);
