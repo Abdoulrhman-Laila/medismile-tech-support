@@ -8,7 +8,7 @@
 
 ```env
 # Production API Base URL
-NEXT_PUBLIC_API_BASE_URL=https://medi-smile1.onrender.com/api
+NEXT_PUBLIC_API_BASE_URL=https://medismile1-production.up.railway.app/api
 ```
 
 ### 2. للتطوير المحلي

@@ -6,6 +6,7 @@ import {
   clearError,
   createUniversityAdmin,
   updateUniversityAdmin,
+  deleteUniversityAdmin,
   fetchUniversityAdmins,
 } from "@/redux/slices/accountsSlice";
 import { fetchUniversities } from "@/redux/slices/universitiesSlice";
@@ -55,7 +56,8 @@ export default function useAccountsPage() {
   }, [activeRole, universityAdmins]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, type, checked } = e.target;
+    const value = type === "checkbox" ? checked : e.target.value;
 
     if (name === "university" && value) {
       const normalized = normalizeUniversityId(value, universities);
@@ -78,8 +80,6 @@ export default function useAccountsPage() {
     const normalizedUniversityId = normalizeUniversityId(formData.university, universities);
 
     const baseUpdateFields = {
-      first_name: sanitizeValue(formData.first_name),
-      last_name: sanitizeValue(formData.last_name),
       phone_number: sanitizeValue(formData.phone_number),
       address: sanitizeValue(formData.address),
       date_of_birth: sanitizeValue(formData.date_of_birth),
@@ -97,7 +97,22 @@ export default function useAccountsPage() {
       }
 
       const userId = String(userIdCandidate);
-      const updatePayload = stripPayload(baseUpdateFields, { preserveNull: true });
+      
+      // 🔹 بناء payload التحديث مع جميع الحقول المدعومة
+      const updatePayload = stripPayload({
+        // الحقول الأساسية
+        first_name: sanitizeValue(formData.first_name),
+        last_name: sanitizeValue(formData.last_name),
+        email: sanitizeValue(formData.email),
+        username: sanitizeValue(formData.username),
+        is_active: formData.is_active !== undefined ? formData.is_active : true,
+        // كلمة المرور (اختيارية)
+        ...(formData.password && formData.password.trim() ? { password: formData.password } : {}),
+        // الحقول الإضافية
+        ...baseUpdateFields,
+      }, { preserveNull: true });
+
+      console.log("📤 تحديث مدير جامعة:", { user_id: userId, data: updatePayload });
 
       try {
         const result = await dispatch(updateUniversityAdmin({ user_id: userId, data: updatePayload }));
@@ -125,8 +140,6 @@ export default function useAccountsPage() {
       {
         email: formData.email?.trim(),
         username: formData.username?.trim(),
-        first_name: sanitizeValue(formData.first_name),
-        last_name: sanitizeValue(formData.last_name),
         password: formData.password,
         password_confirm: formData.password_confirm || formData.password,
         university_id: normalizedUniversityId, // إرسال university_id مباشرة عند الإنشاء
@@ -218,13 +231,59 @@ export default function useAccountsPage() {
   };
 
   const handleEdit = async (user) => {
-    // لا يمكن التعديل حالياً لأن API جلب التفاصيل غير متوفر
-    alert("⚠️ التعديل غير متوفر حالياً");
+    const userId = user?.user_id ?? user?.id ?? user?.original_user_id;
+    if (!userId) {
+      alert("❌ لا يوجد معرف مستخدم للتعديل");
+      return;
+    }
+
+    // تعبئة النموذج ببيانات المستخدم المحدد
+    setFormData({
+      user_id: userId,
+      id: userId,
+      username: user.username || "",
+      email: user.email || "",
+      first_name: user.first_name || "",
+      last_name: user.last_name || "",
+      password: "",
+      password_confirm: "",
+      date_of_birth: user.date_of_birth || "",
+      gender: user.gender || "",
+      phone_number: user.phone_number || "",
+      address: user.address || "",
+      profile_picture: user.profile_picture || "",
+      university: user.university || user.university_id || "",
+      department: user.department || "",
+      position: user.position || "",
+      is_active: user.is_active !== undefined ? user.is_active : true,
+    });
+    setIsEditing(true);
+    dispatch(clearError());
   };
 
-  const handleDelete = (user) => {
-    // لا يمكن الحذف حالياً لأن API الحذف غير متوفر
-    alert("⚠️ الحذف غير متوفر حالياً");
+  const handleDelete = async (user) => {
+    const userId = user?.user_id ?? user?.id ?? user?.original_user_id;
+    if (!userId) {
+      alert("❌ لا يوجد معرف مستخدم للحذف");
+      return;
+    }
+
+    if (!confirm(`هل أنت متأكد من حذف مدير الجامعة "${user.username || user.email || userId}"؟`)) {
+      return;
+    }
+
+    try {
+      const result = await dispatch(deleteUniversityAdmin(userId));
+      if (result.type === "accounts/deleteUniversityAdmin/fulfilled") {
+        // إعادة جلب قائمة مدراء الجامعات بعد الحذف
+        await dispatch(fetchUniversityAdmins());
+        alert("✅ تم حذف مدير الجامعة بنجاح");
+      } else if (result.type === "accounts/deleteUniversityAdmin/rejected") {
+        alert(`❌ فشل الحذف: ${result.payload}`);
+      }
+    } catch (err) {
+      alert(`❌ خطأ في الحذف: ${err.message || "حدث خطأ غير متوقع"}`);
+    }
   };
 
   const handleCancel = () => {

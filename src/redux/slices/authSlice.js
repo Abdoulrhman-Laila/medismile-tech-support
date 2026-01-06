@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { login as loginApi, logout as logoutApi, refreshAccessToken as refreshTokenApi } from "@/api/accountsApi";
+import { login as loginApi, logout as logoutApi, refreshAccessToken as refreshTokenApi, getTechSupportProfile as getTechSupportProfileApi, updateTechSupportProfile as updateTechSupportProfileApi } from "@/api/accountsApi";
 
 const initialState = {
   user: null,
@@ -10,6 +10,9 @@ const initialState = {
   isAuthenticated: false,
   loading: false,
   error: null,
+  profile: null,
+  profileLoading: false,
+  profileError: null,
 };
 
 /* ──────────── Thunks ──────────── */
@@ -218,6 +221,52 @@ export const loadAuthFromStorage = createAsyncThunk(
   }
 );
 
+/**
+ * 🔹 جلب ملف المستخدم الشخصي (الدعم التقني)
+ * GET /api/accounts/me/tech-support/
+ */
+export const fetchProfile = createAsyncThunk(
+  "auth/fetchProfile",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getTechSupportProfileApi();
+      const profileData = response?.data || response;
+      return profileData;
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.response?.data?.detail ||
+        err.message ||
+        "فشل في جلب الملف الشخصي";
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+/**
+ * 🔹 تحديث ملف المستخدم الشخصي (الدعم التقني)
+ * PATCH /api/accounts/me/tech-support/
+ */
+export const updateProfile = createAsyncThunk(
+  "auth/updateProfile",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await updateTechSupportProfileApi(data);
+      const profileData = response?.data || response;
+      return profileData;
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.response?.data?.detail ||
+        err.message ||
+        "فشل في تحديث الملف الشخصي";
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
 /* ──────────── Slice ──────────── */
 
 const authSlice = createSlice({
@@ -325,6 +374,34 @@ const authSlice = createSlice({
         state.accessToken = null;
         state.refreshToken = null;
         state.isAuthenticated = false;
+      })
+      // 🔸 Fetch Profile
+      .addCase(fetchProfile.pending, (state) => {
+        state.profileLoading = true;
+        state.profileError = null;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.profileLoading = false;
+        state.profileError = null;
+        state.profile = action.payload;
+      })
+      .addCase(fetchProfile.rejected, (state, action) => {
+        state.profileLoading = false;
+        state.profileError = action.payload;
+      })
+      // 🔸 Update Profile
+      .addCase(updateProfile.pending, (state) => {
+        state.profileLoading = true;
+        state.profileError = null;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.profileLoading = false;
+        state.profileError = null;
+        state.profile = action.payload;
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.profileLoading = false;
+        state.profileError = action.payload;
       });
   },
 });

@@ -215,6 +215,13 @@ export default function SupportPage() {
               <ul className="space-y-2">
                 {filteredTickets.map((ticket) => {
                   const isActive = currentTicket?.id === ticket.id;
+                  const creatorName = ticket.created_by?.full_name?.trim() ||
+                    `${ticket.created_by?.first_name || ""} ${ticket.created_by?.last_name || ""}`.trim() ||
+                    ticket.created_by?.username ||
+                    "غير معروف";
+                  const creatorEmail = ticket.created_by?.email;
+                  const creatorId = ticket.created_by?.id;
+                  
                   return (
                     <li key={ticket.id}>
                       <button
@@ -238,11 +245,30 @@ export default function SupportPage() {
                               : "منخفضة"}
                           </span>
                         </div>
-                        <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-[#6b7a94]">
-                          <span>{ticket.category || "—"}</span>
-                          <span>{ticket.status || "—"}</span>
-                          {ticket.responses_count !== undefined && (
-                            <span>💬 {ticket.responses_count}</span>
+                        <div className="mt-1 space-y-1">
+                          <div className="flex items-center justify-between gap-2 text-[11px] text-[#6b7a94]">
+                            <span>{ticket.category || "—"}</span>
+                            <span>{ticket.status || "—"}</span>
+                            {ticket.responses_count !== undefined && (
+                              <span>💬 {ticket.responses_count}</span>
+                            )}
+                          </div>
+                          {ticket.created_by && (
+                            <div className="text-[10px] text-[#8aa7d6] space-y-0.5">
+                              <div className="truncate">
+                                👤 {creatorName}
+                              </div>
+                              {creatorEmail && (
+                                <div className="truncate" title={creatorEmail}>
+                                  📧 {creatorEmail}
+                                </div>
+                              )}
+                              {creatorId && (
+                                <div className="truncate font-mono" title={creatorId}>
+                                  🆔 {creatorId.substring(0, 8)}...
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
                       </button>
@@ -297,15 +323,51 @@ export default function SupportPage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-[#6b7a94]">
                     {currentTicket.created_by && (
-                      <div>
-                        <span className="font-semibold">أنشأه:</span>{" "}
-                        {currentTicket.created_by.first_name} {currentTicket.created_by.last_name}
+                      <div className="space-y-1">
+                        <div>
+                          <span className="font-semibold">أنشأه:</span>{" "}
+                          {currentTicket.created_by.full_name?.trim() ||
+                            `${currentTicket.created_by.first_name || ""} ${currentTicket.created_by.last_name || ""}`.trim() ||
+                            currentTicket.created_by.username ||
+                            "غير معروف"}
+                        </div>
+                        {currentTicket.created_by.email && (
+                          <div className="text-[10px] text-[#8aa7d6]">
+                            📧 {currentTicket.created_by.email}
+                          </div>
+                        )}
+                        {currentTicket.created_by.id && (
+                          <div className="text-[10px] text-[#8aa7d6] font-mono">
+                            🆔 {currentTicket.created_by.id}
+                          </div>
+                        )}
+                        {currentTicket.created_by.role_name && (
+                          <div className="text-[10px] text-[#8aa7d6]">
+                            👤 {currentTicket.created_by.role_name}
+                          </div>
+                        )}
                       </div>
                     )}
                     {currentTicket.assigned_to && (
-                      <div>
-                        <span className="font-semibold">معين ل:</span>{" "}
-                        {currentTicket.assigned_to.first_name} {currentTicket.assigned_to.last_name}
+                      <div className="space-y-1">
+                        <div>
+                          <span className="font-semibold">معين ل:</span>{" "}
+                          {currentTicket.assigned_to.full_name?.trim() ||
+                            `${currentTicket.assigned_to.first_name || ""} ${currentTicket.assigned_to.last_name || ""}`.trim() ||
+                            currentTicket.assigned_to.username ||
+                            currentTicket.assigned_to.email ||
+                            "غير معين"}
+                        </div>
+                        {currentTicket.assigned_to.email && (
+                          <div className="text-[10px] text-[#8aa7d6]">
+                            📧 {currentTicket.assigned_to.email}
+                          </div>
+                        )}
+                        {currentTicket.assigned_to.id && (
+                          <div className="text-[10px] text-[#8aa7d6] font-mono">
+                            🆔 {currentTicket.assigned_to.id}
+                          </div>
+                        )}
                       </div>
                     )}
                     {currentTicket.created_at && (

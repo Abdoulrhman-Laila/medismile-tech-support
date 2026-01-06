@@ -14,6 +14,7 @@ import {
   fetchUniversityAdmins as fetchUniversityAdminsApi,
   createUniversityAdmin as createUniversityAdminApi,
   updateUniversityAdmin as updateUniversityAdminApi,
+  deleteUniversityAdmin as deleteUniversityAdminApi,
   fetchTechSupport as fetchTechSupportApi,
   getTechSupportDetails as getTechSupportDetailsApi,
   createTechSupport as createTechSupportApi,
@@ -693,11 +694,12 @@ export const createUniversityAdmin = createAsyncThunk(
 );
 
 // 🔹 تحديث بيانات مدير جامعة
-// PATCH /api/university-admins/<user_id>/
+// PATCH /api/accounts/university-admins/<uuid:user_id>/
 export const updateUniversityAdmin = createAsyncThunk(
   "accounts/updateUniversityAdmin",
   async ({ user_id, data }, { rejectWithValue }) => {
     try {
+      console.log("📤 تحديث مدير جامعة:", { user_id, data });
       const apiResponse = await updateUniversityAdminApi(user_id, data);
       const updatedAdmin = apiResponse?.data || apiResponse;
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -713,7 +715,7 @@ export const updateUniversityAdmin = createAsyncThunk(
         }
       }
 
-      return {
+      const normalizedAdmin = {
         ...updatedAdmin,
         user_id: userId,
         id: userId,
@@ -723,7 +725,11 @@ export const updateUniversityAdmin = createAsyncThunk(
         university_id: updatedAdmin.university || updatedAdmin.university_id || null,
         university_name: updatedAdmin.university_name || null,
       };
+
+      console.log("✅ تم تحديث مدير الجامعة بنجاح:", normalizedAdmin);
+      return normalizedAdmin;
     } catch (err) {
+      console.error("❌ خطأ في تحديث مدير الجامعة:", err.response?.data || err.message);
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||
@@ -735,7 +741,28 @@ export const updateUniversityAdmin = createAsyncThunk(
   }
 );
 
-// 🔹 حذف مدير جامعة - تم إزالة هذا الـ endpoint لأنه غير موجود في API
+// 🔹 حذف مدير جامعة
+// DELETE /api/accounts/university-admins/<uuid:user_id>/
+export const deleteUniversityAdmin = createAsyncThunk(
+  "accounts/deleteUniversityAdmin",
+  async (user_id, { rejectWithValue }) => {
+    try {
+      console.log("📤 حذف مدير جامعة:", user_id);
+      await deleteUniversityAdminApi(user_id);
+      console.log("✅ تم حذف مدير الجامعة بنجاح");
+      return user_id;
+    } catch (err) {
+      console.error("❌ خطأ في حذف مدير الجامعة:", err.response?.data || err.message);
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.response?.data?.detail ||
+        err.message ||
+        "فشل في حذف مدير الجامعة";
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
 
 /* ──────────── Tech Support Thunks ──────────── */
 
@@ -1711,6 +1738,23 @@ const accountsSlice = createSlice({
         }
       })
       .addCase(updateUniversityAdmin.rejected, (state, action) => {
+        state.operationLoading = false;
+        state.operationError = action.payload;
+      })
+      // 🔸 Delete University Admin
+      .addCase(deleteUniversityAdmin.pending, (state) => {
+        state.operationLoading = true;
+        state.operationError = null;
+      })
+      .addCase(deleteUniversityAdmin.fulfilled, (state, action) => {
+        state.operationLoading = false;
+        state.operationError = null;
+        const deletedUserId = String(action.payload);
+        state.universityAdmins = state.universityAdmins.filter(
+          (admin) => String(admin.user_id || admin.id || admin.original_user_id) !== deletedUserId
+        );
+      })
+      .addCase(deleteUniversityAdmin.rejected, (state, action) => {
         state.operationLoading = false;
         state.operationError = action.payload;
       })

@@ -17,15 +17,16 @@ const baseUserFields = {
   user_id: "",
   username: "",
   email: "",
-  password: "",
-  password_confirm: "",
   first_name: "",
   last_name: "",
+  password: "",
+  password_confirm: "",
   date_of_birth: "",
   gender: "",
   phone_number: "",
   address: "",
   profile_picture: "",
+  is_active: true,
 };
 
 export const initialForms = {

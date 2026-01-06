@@ -1,7 +1,7 @@
 // src/api/accountsAxios.js
 import axios from "axios";
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://medi-smile1.onrender.com/api").replace(/\/+$/, "");
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://medismile1-production.up.railway.app/api").replace(/\/+$/, "");
 
 const accountsAxios = axios.create({
   baseURL: `${API_BASE_URL}/`,
@@ -66,7 +66,7 @@ accountsAxios.interceptors.response.use(
           const refreshToken = localStorage.getItem("mediSmile_refreshToken");
           
           if (refreshToken) {
-            const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://medi-smile1.onrender.com/api").replace(/\/+$/, "");
+            const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://medismile1-production.up.railway.app/api").replace(/\/+$/, "");
             
             // استخدام axios مباشرة لتجنب interceptor loop
             const response = await axios.post(

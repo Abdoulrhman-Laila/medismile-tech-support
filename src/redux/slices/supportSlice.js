@@ -29,10 +29,36 @@ export const fetchTickets = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const apiResponse = await fetchTicketsApi(params);
-      // التوثيق يستخدم شكل موحد: {status, message, data}
-      const data = apiResponse?.data ?? apiResponse ?? [];
-      return Array.isArray(data) ? data : [];
+      console.log("📥 استجابة API الكاملة:", JSON.stringify(apiResponse, null, 2));
+      
+      // 🔹 معالجة البنية المتداخلة: results.data أو data مباشرة
+      let tickets = [];
+      
+      // الحالة 1: البنية المتداخلة {count, next, previous, results: {status, message, data: [...]}}
+      if (apiResponse?.results?.data && Array.isArray(apiResponse.results.data)) {
+        tickets = apiResponse.results.data;
+        console.log("✅ تم استخراج التذاكر من results.data:", tickets.length);
+      }
+      // الحالة 2: البنية المباشرة {status, message, data: [...]}
+      else if (apiResponse?.data && Array.isArray(apiResponse.data)) {
+        tickets = apiResponse.data;
+        console.log("✅ تم استخراج التذاكر من data:", tickets.length);
+      }
+      // الحالة 3: مصفوفة مباشرة
+      else if (Array.isArray(apiResponse)) {
+        tickets = apiResponse;
+        console.log("✅ التذاكر هي مصفوفة مباشرة:", tickets.length);
+      }
+      // الحالة 4: results مباشرة كمصفوفة
+      else if (apiResponse?.results && Array.isArray(apiResponse.results)) {
+        tickets = apiResponse.results;
+        console.log("✅ تم استخراج التذاكر من results:", tickets.length);
+      }
+      
+      console.log("📋 التذاكر المستخرجة:", tickets);
+      return tickets;
     } catch (err) {
+      console.error("❌ خطأ في جلب التذاكر:", err);
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||

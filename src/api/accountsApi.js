@@ -213,14 +213,28 @@ export const createUniversityAdmin = async (data) => {
 
 /**
  * 🔹 تحديث بيانات مدير جامعة
- * PATCH /api/university-admins/<user_id>/
+ * PATCH /api/accounts/university-admins/<uuid:user_id>/
  */
 export const updateUniversityAdmin = async (userId, data) => {
   try {
-    const res = await accountsAxios.patch(`university-admins/${userId}/`, data);
+    const res = await accountsAxios.patch(`accounts/university-admins/${userId}/`, data);
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في تحديث مدير الجامعة:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * 🔹 حذف مدير جامعة
+ * DELETE /api/accounts/university-admins/<uuid:user_id>/
+ */
+export const deleteUniversityAdmin = async (userId) => {
+  try {
+    const res = await accountsAxios.delete(`accounts/university-admins/${userId}/`);
+    return res.data;
+  } catch (error) {
+    console.error("❌ خطأ في حذف مدير الجامعة:", error.response?.data || error.message);
     throw error;
   }
 };
@@ -347,6 +361,37 @@ export const refreshAccessToken = async (refreshToken) => {
     return res.data;
   } catch (error) {
     console.error("❌ خطأ في تجديد Token:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * 🔹 جلب ملف المستخدم الشخصي (الدعم التقني)
+ * GET /api/accounts/me/tech-support/
+ * @returns {Promise} Response data with tech support profile
+ */
+export const getTechSupportProfile = async () => {
+  try {
+    const res = await accountsAxios.get("accounts/me/tech-support/");
+    return res.data;
+  } catch (error) {
+    console.error("❌ خطأ في جلب الملف الشخصي:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * 🔹 تحديث ملف المستخدم الشخصي (الدعم التقني)
+ * PATCH /api/accounts/me/tech-support/
+ * @param {Object} data - البيانات المراد تحديثها
+ * @returns {Promise} Response data with updated profile
+ */
+export const updateTechSupportProfile = async (data) => {
+  try {
+    const res = await accountsAxios.patch("accounts/me/tech-support/", data);
+    return res.data;
+  } catch (error) {
+    console.error("❌ خطأ في تحديث الملف الشخصي:", error.response?.data || error.message);
     throw error;
   }
 };

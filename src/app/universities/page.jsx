@@ -177,208 +177,79 @@ const handleSave = async () => {
       )}
 
       <Card title="قائمة الجامعات" icon={University}>
-        {/* جدول للشاشات الكبيرة */}
-        <div className="hidden lg:block rounded-2xl bg-gradient-to-br from-white/98 to-[#dde8ff]/92 border border-[#d6e4ff]/45 shadow-[0_6px_18px_rgba(39,86,133,0.08)] overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm" style={{ minWidth: "1400px" }}>
-              <thead>
-                <tr className="bg-gradient-to-r from-[#1d72dd] to-[#2f87f5] text-white">
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap">#</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap">اسم الجامعة</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap">الاسم المختصر</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap min-w-[200px]">الوصف</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap min-w-[180px]">العنوان</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap">المدينة</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap">الدولة</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap min-w-[180px]">البريد الإلكتروني</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap">الهاتف</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap min-w-[200px]">الموقع الإلكتروني</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-center text-xs sm:text-sm whitespace-nowrap">الحالة</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap">تاريخ الإنشاء</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-right text-xs sm:text-sm whitespace-nowrap">تاريخ التحديث</th>
-                  <th className="px-3 py-3 sm:px-4 sm:py-3.5 font-semibold text-center text-xs sm:text-sm whitespace-nowrap">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {safeUniversities.length ? (
-                  safeUniversities.map((uni, idx) => (
-                    <tr key={uni.id || `uni-${idx}`} className="border-b border-[#d6e4ff]/60 hover:bg-[#d6e4ff]/65 transition-colors even:bg-[#ecf4ff]/45">
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-center font-semibold text-[#1d72dd]">
-                        {idx + 1}
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 font-medium text-[#0f1f3f]">
-                        {uni.name || "—"}
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-[#3f4a5f] font-medium">
-                        {uni.short_name || "—"}
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-[#3f4a5f] max-w-[200px]">
-                        <div className="line-clamp-2" title={uni.description || ""}>
-                          {uni.description || "—"}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-[#3f4a5f] max-w-[180px]">
-                        <div className="line-clamp-2" title={uni.address || ""}>
-                          {uni.address || "—"}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-[#3f4a5f]">
-                        {uni.city || "—"}
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-[#3f4a5f]">
-                        {uni.country || "—"}
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-[#3f4a5f] max-w-[180px]">
-                        <div className="truncate" title={uni.email || ""}>
-                          {uni.email ? (
-                            <a href={`mailto:${uni.email}`} className="text-[#2f87f5] hover:underline">
-                              {uni.email}
-                            </a>
-                          ) : (
-                            "—"
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-[#3f4a5f]">
-                        {uni.phone || "—"}
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-[#3f4a5f] max-w-[200px]">
-                        {uni.website ? (
-                          <a 
-                            href={uni.website} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-[#2f87f5] hover:underline truncate block"
-                            title={uni.website}
-                          >
-                            {uni.website}
-                          </a>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-center">
-                        {uni.is_active ? (
-                          <span className="inline-flex items-center justify-center gap-1 text-green-600">
-                            <CheckCircle2 size={16} className="sm:w-[18px] sm:h-[18px]" /> 
-                            <span className="hidden sm:inline">نشط</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center justify-center gap-1 text-red-600">
-                            <XCircle size={16} className="sm:w-[18px] sm:h-[18px]" /> 
-                            <span className="hidden sm:inline">غير نشط</span>
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-xs text-[#6b7a94] whitespace-nowrap">
-                        {formatDate(uni.created_at)}
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5 text-xs text-[#6b7a94] whitespace-nowrap">
-                        {formatDate(uni.updated_at)}
-                      </td>
-                      <td className="px-3 py-3 sm:px-4 sm:py-3.5">
-                        <div className="flex flex-wrap justify-end gap-1.5 sm:gap-2">
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                              setEditUni(uni);
-                              setFormData({
-                                name: uni.name || "",
-                                short_name: uni.short_name || "",
-                                description: uni.description || "",
-                                address: uni.address || "",
-                                city: uni.city || "",
-                                country: uni.country || "",
-                                website: uni.website || "",
-                                email: uni.email || "",
-                                phone: uni.phone || "",
-                                is_active: uni.is_active !== undefined ? uni.is_active : true,
-                              });
-                              setShowForm(true);
-                            }}
-                          >
-                            تعديل
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="danger"
-                            size="sm"
-                            onClick={() => handleDelete(uni.id)}
-                          >
-                            حذف
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={14} className="px-4 py-16 sm:py-20 text-center">
-                      <div className="flex flex-col items-center justify-center gap-3 text-center">
-                        <University className="h-10 w-10 sm:h-12 sm:w-12 text-[#2f87f5]" />
-                        <p className="text-base sm:text-lg font-semibold text-[#0f1f3f]">لا توجد جامعات حالياً</p>
-                        <p className="text-sm sm:text-base text-[#6b7a94] max-w-md">
-                          ابدأ بإضافة جامعة جديدة أو قم بتحديث البيانات لجلب أحدث السجلات.
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* بطاقات للشاشات الصغيرة والمتوسطة */}
-        <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* بطاقات لجميع الشاشات */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {safeUniversities.length ? (
             safeUniversities.map((uni, idx) => (
-              <div key={uni.id || `uni-card-${idx}`} className="bg-white rounded-xl border border-[#d6e4ff]/70 p-4 shadow-sm">
-                  <div className="space-y-3">
+              <div key={uni.id || `uni-card-${idx}`} className="bg-white rounded-xl border border-[#d6e4ff]/70 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-base text-[#0f1f3f]">{uni.name || "—"}</h3>
-                      {uni.short_name && (
-                        <p className="text-sm text-[#6b7a94] mt-0.5">({uni.short_name})</p>
-                      )}
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#4d9dff] to-[#155fba] flex items-center justify-center flex-shrink-0">
+                        <University className="h-6 w-6 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base text-[#0f1f3f] truncate">{uni.name || "—"}</h3>
+                        {uni.short_name && (
+                          <p className="text-xs text-[#6b7a94] mt-0.5">({uni.short_name})</p>
+                        )}
+                      </div>
                     </div>
                     {uni.is_active ? (
-                      <span className="inline-flex items-center gap-1 text-green-600 text-xs">
+                      <span className="inline-flex items-center gap-1 text-green-600 text-xs bg-green-50 px-2 py-1 rounded">
                         <CheckCircle2 size={14} /> نشط
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-red-600 text-xs">
+                      <span className="inline-flex items-center gap-1 text-red-600 text-xs bg-red-50 px-2 py-1 rounded">
                         <XCircle size={14} /> غير نشط
                       </span>
                     )}
                   </div>
                   {uni.description && (
-                    <p className="text-sm text-[#3f4a5f] line-clamp-2">📝 {uni.description}</p>
+                    <p className="text-sm text-[#3f4a5f] line-clamp-2 bg-[#ecf4ff]/40 px-2 py-1.5 rounded">📝 {uni.description}</p>
                   )}
-                  <div className="space-y-1.5 text-sm text-[#3f4a5f]">
-                    <p className="truncate">
-                      📧 {uni.email ? (
-                        <a href={`mailto:${uni.email}`} className="text-[#2f87f5] hover:underline">
+                  <div className="pt-2 border-t border-[#d6e4ff]/50 space-y-1.5 text-sm text-[#3f4a5f]">
+                    {uni.email && (
+                      <p className="flex items-center gap-1.5 truncate">
+                        <span>📧</span>
+                        <a href={`mailto:${uni.email}`} className="text-[#2f87f5] hover:underline truncate">
                           {uni.email}
                         </a>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
-                    </p>
-                    <p>📞 {uni.phone || <span className="text-gray-400">—</span>}</p>
-                    {uni.address && <p className="line-clamp-2">📍 {uni.address}</p>}
-                    {uni.city && <p>🏙️ {uni.city}</p>}
-                    {uni.country && <p>🌍 {uni.country}</p>}
+                      </p>
+                    )}
+                    {uni.phone && (
+                      <p className="flex items-center gap-1.5">
+                        <span>📞</span>
+                        <span>{uni.phone}</span>
+                      </p>
+                    )}
+                    {uni.address && (
+                      <p className="flex items-start gap-1.5 line-clamp-2">
+                        <span>📍</span>
+                        <span>{uni.address}</span>
+                      </p>
+                    )}
+                    {(uni.city || uni.country) && (
+                      <p className="flex items-center gap-1.5">
+                        <span>🌍</span>
+                        <span>{[uni.city, uni.country].filter(Boolean).join(", ")}</span>
+                      </p>
+                    )}
                     {uni.website && (
-                      <p className="truncate">
-                        🌐 <a href={uni.website} target="_blank" rel="noopener noreferrer" className="text-[#2f87f5] hover:underline">
-                          {uni.website.length > 40 ? `${uni.website.substring(0, 40)}...` : uni.website}
+                      <p className="flex items-center gap-1.5 truncate">
+                        <span>🌐</span>
+                        <a href={uni.website} target="_blank" rel="noopener noreferrer" className="text-[#2f87f5] hover:underline truncate">
+                          {uni.website.length > 35 ? `${uni.website.substring(0, 35)}...` : uni.website}
                         </a>
                       </p>
                     )}
                   </div>
+                  {(uni.created_at || uni.updated_at) && (
+                    <div className="text-xs text-[#6b7a94] bg-[#ecf4ff]/40 px-2 py-1 rounded">
+                      {uni.created_at && <p>تاريخ الإنشاء: {formatDate(uni.created_at)}</p>}
+                      {uni.updated_at && <p>آخر تحديث: {formatDate(uni.updated_at)}</p>}
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-2 pt-2">
                     <Button
                       type="button"
@@ -400,7 +271,7 @@ const handleSave = async () => {
                         });
                         setShowForm(true);
                       }}
-                      className="text-xs flex-1 sm:flex-none"
+                      className="flex-1"
                     >
                       تعديل
                     </Button>
@@ -409,7 +280,7 @@ const handleSave = async () => {
                       variant="danger"
                       size="sm"
                       onClick={() => handleDelete(uni.id)}
-                      className="text-xs flex-1 sm:flex-none"
+                      className="flex-1"
                     >
                       حذف
                     </Button>
