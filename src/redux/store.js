@@ -4,7 +4,6 @@ import accountsReducer from "./slices/accountsSlice";
 import authReducer from "./slices/authSlice";
 import backupsReducer from "./slices/backupSlice";
 import paymentsReducer from './slices/paymentsSlice';
-import logsReducer from "./slices/logsSlice";
 import systemMonitoringReducer from "./slices/systemMonitoringSlice";
 import universitiesReducer from "./slices/universitiesSlice";
 import techUpdatesReducer from "./slices/techUpdatesSlice";
@@ -28,7 +27,6 @@ export const store = configureStore({
         accounts: accountsReducer,
         backups: backupsReducer,
         payments: paymentsReducer,
-        logs: logsReducer,
         SystemMonitoring: systemMonitoringReducer,
         universities: universitiesReducer,
         techUpdates: techUpdatesReducer,

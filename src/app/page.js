@@ -1,42 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { University, CreditCard, ShieldCheck, HardDrive, Users, FileText, Activity, TrendingUp, LogOut } from "lucide-react";
-import {
-  LineChart,
-  Line,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { FileText, LogOut, RefreshCcw, Clock, User, Activity } from "lucide-react";
 import { PageHeader, Card, Button } from "@/components/ui";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { logout } from "@/redux/slices/authSlice";
+import { fetchAuditLogs, clearAuditError } from "@/redux/slices/auditSlice";
 
 export default function HomePage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { user, loading: authLoading } = useSelector((state) => state.auth);
-  const [loading, setLoading] = useState(true);
-
-  // بيانات وهمية للمخططات
-  const [performanceData] = useState([
-    { time: "10:00", CPU: 30, RAM: 45, Disk: 60, Response: 120 },
-    { time: "10:10", CPU: 50, RAM: 55, Disk: 65, Response: 180 },
-    { time: "10:20", CPU: 40, RAM: 60, Disk: 70, Response: 150 },
-    { time: "10:30", CPU: 70, RAM: 75, Disk: 80, Response: 200 },
-    { time: "10:40", CPU: 65, RAM: 70, Disk: 78, Response: 170 },
-  ]);
+  const { logs, loading: auditLoading, error: auditError } = useSelector((state) => state.audit);
 
   useEffect(() => {
     if (!authLoading) {
-      setLoading(false);
+      // جلب سجلات التدقيق عند تحميل الصفحة
+      dispatch(fetchAuditLogs({ limit: 10 })); // آخر 10 سجلات
     }
-  }, [authLoading]);
+  }, [dispatch, authLoading]);
+
+  const handleRefresh = () => {
+    dispatch(fetchAuditLogs({ limit: 10 }));
+  };
 
   const handleLogout = async () => {
     try {
@@ -48,7 +36,38 @@ export default function HomePage() {
     }
   };
 
-  if (loading || authLoading) {
+  const getActionIcon = (action) => {
+    switch (action?.toLowerCase()) {
+      case "create":
+      case "update":
+      case "delete":
+        return <Activity className="h-4 w-4" />;
+      case "login":
+      case "logout":
+        return <User className="h-4 w-4" />;
+      default:
+        return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  const getActionColor = (action) => {
+    switch (action?.toLowerCase()) {
+      case "create":
+        return "bg-green-100 text-green-700";
+      case "update":
+        return "bg-blue-100 text-blue-700";
+      case "delete":
+        return "bg-red-100 text-red-700";
+      case "login":
+        return "bg-purple-100 text-purple-700";
+      case "logout":
+        return "bg-gray-100 text-gray-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -59,55 +78,11 @@ export default function HomePage() {
     );
   }
 
-  const quickLinks = [
-    {
-      title: "إدارة الجامعات",
-      description: "متابعة وإدارة الجامعات المسجلة.",
-      href: "/universities",
-      icon: University,
-    },
-    {
-      title: "إدارة الدفع",
-      description: "متابعة الدفعات والفواتير.",
-      href: "/payments",
-      icon: CreditCard,
-    },
-    {
-      title: "إدارة الصلاحيات",
-      description: "تعيين وإدارة صلاحيات المستخدمين.",
-      href: "/permissions",
-      icon: ShieldCheck,
-    },
-    {
-      title: "إدارة النسخ الاحتياطي",
-      description: "إنشاء واستعادة النسخ الاحتياطية.",
-      href: "/backup-management",
-      icon: HardDrive,
-    },
-    {
-      title: "إدارة الحسابات",
-      description: "التحكم بحسابات الجامعات والمستخدمين.",
-      href: "/accounts",
-      icon: Users,
-    },
-    {
-      title: "إدارة السجلات التقنية",
-      description: "عرض وتنظيم السجلات مع خيارات التصدير.",
-      href: "/systemlogs",
-      icon: FileText,
-    },
-  ];
-
   const headerMeta = [
     user?.email && { label: "البريد الإلكتروني", value: user.email },
     user?.role && { label: "الدور", value: user.role },
-    user?.last_login && {
-      label: "آخر تسجيل دخول",
-      value: new Date(user.last_login).toLocaleString(),
-    },
+    { label: "عدد السجلات", value: logs?.length ?? 0 },
   ].filter(Boolean);
-
-  const hasPerformanceData = performanceData?.length > 0;
 
   return (
     <ProtectedRoute>
@@ -115,105 +90,133 @@ export default function HomePage() {
         <div className="page-container">
           <PageHeader
             title={`مرحباً ${(user.first_name || user.name || user.username || "").trim()} 👋`}
-            description="تابع مؤشرات الأداء واتخذ قراراتك بسرعة عبر لوحة الدعم التقني."
+            description="تابع آخر النشاطات وسجلات التدقيق في النظام."
             meta={headerMeta}
             actions={
-              <Button variant="outline" icon={LogOut} onClick={handleLogout}>
-                تسجيل الخروج
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button variant="outline" size="sm" icon={RefreshCcw} onClick={handleRefresh}>
+                  تحديث
+                </Button>
+                <Button variant="outline" icon={LogOut} onClick={handleLogout}>
+                  تسجيل الخروج
+                </Button>
+              </div>
             }
           />
 
-          <section>
-            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#3f4a5f]">
-              <Activity className="h-4 w-4 text-[#1d72dd]" />
-              <span>الوصول السريع</span>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {quickLinks.map(({ title, description, href, icon: Icon }) => (
-                <Card
-                  key={href}
-                  tone="muted"
-                  className="cursor-pointer transition hover:-translate-y-1 hover:shadow-lg"
-                  onClick={() => router.push(href)}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white">
-                        <Icon className="h-6 w-6" aria-hidden="true" />
-                      </span>
-                      <div>
-                        <h3 className="text-lg font-semibold text-white">{title}</h3>
-                        <p className="text-sm text-white/80">{description}</p>
-                      </div>
-                    </div>
-                    <TrendingUp className="h-5 w-5 text-white/70" />
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
+          {auditError && (
+            <Card tone="danger">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-red-700">{auditError}</p>
+                <Button size="xs" variant="ghost" onClick={() => dispatch(clearAuditError())}>
+                  إغلاق
+                </Button>
+              </div>
+            </Card>
+          )}
 
           <Card
-            title="لمحة عن أداء النظام"
-            description="تتبع أداء البنية التحتية بشكل لحظي واستجب بسرعة لأي تغيّر مفاجئ."
-            icon={Activity}
+            title="آخر سجلات التدقيق"
+            description="عرض آخر النشاطات والإجراءات في النظام."
+            icon={FileText}
           >
-            {hasPerformanceData ? (
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <Card tone="outline" padding="p-0">
-                  <header className="px-6 py-4">
-                    <h3 className="text-lg font-semibold text-[#0f1f3f]">CPU & RAM</h3>
-                    <p className="text-sm text-[#6b7a94]">
-                      مراقبة استهلاك المعالجات والذاكرة عبر الزمن.
-                    </p>
-                  </header>
-                  <div className="h-72 px-4 pb-6">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={performanceData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.3)" />
-                        <XAxis dataKey="time" stroke="#6b7a94" />
-                        <YAxis stroke="#6b7a94" />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="CPU" stroke="#1d72dd" strokeWidth={2} />
-                        <Line type="monotone" dataKey="RAM" stroke="#30b980" strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
+            {auditLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+                  <p className="mt-4 text-sm text-gray-600">جاري تحميل السجلات...</p>
+                </div>
+              </div>
+            ) : logs && logs.length > 0 ? (
+              <div className="space-y-3">
+                {logs.slice(0, 10).map((log, idx) => (
+                  <div
+                    key={log.id || idx}
+                    className="rounded-xl border border-[#d6e4ff] bg-white p-4 transition hover:shadow-md"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${getActionColor(log.action)}`}>
+                          {getActionIcon(log.action)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${getActionColor(log.action)}`}>
+                              {log.action || "غير محدد"}
+                            </span>
+                            {log.content_type && (
+                              <span className="text-xs text-[#6b7a94]">
+                                {log.content_type}
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1.5 text-sm text-[#0f1f3f] break-words">
+                            {log.message || log.description || "لا يوجد وصف"}
+                          </p>
+                          <div className="mt-2 flex items-center gap-4 text-xs text-[#6b7a94]">
+                            {log.user_name && (
+                              <span className="flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                {log.user_name}
+                              </span>
+                            )}
+                            {log.timestamp && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {new Date(log.timestamp).toLocaleDateString('ar-EG', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            )}
+                            {log.created_at && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {new Date(log.created_at).toLocaleDateString('ar-EG', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </Card>
-
-                <Card tone="outline" padding="p-0">
-                  <header className="px-6 py-4">
-                    <h3 className="text-lg font-semibold text-[#0f1f3f]">Disk & Response</h3>
-                    <p className="text-sm text-[#6b7a94]">
-                      سرعة الاستجابة وسعة التخزين لضمان استمرارية الخدمة.
-                    </p>
-                  </header>
-                  <div className="h-72 px-4 pb-6">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={performanceData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.3)" />
-                        <XAxis dataKey="time" stroke="#6b7a94" />
-                        <YAxis stroke="#6b7a94" />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="Disk" stroke="#f59e0b" strokeWidth={2} />
-                        <Line type="monotone" dataKey="Response" stroke="#ea5455" strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                ))}
+                {logs.length >= 10 && (
+                  <div className="pt-2 text-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push("/audit")}
+                    >
+                      عرض جميع السجلات
+                    </Button>
                   </div>
-                </Card>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#8aa7d6] bg-[#ecf4ff] p-10 text-center">
-                <Activity className="mb-4 h-10 w-10 text-[#1d72dd]" />
+                <FileText className="mb-4 h-10 w-10 text-[#1d72dd]" />
                 <h3 className="text-lg font-semibold text-[#0f1f3f]">
-                  لا توجد بيانات متاحة حالياً
+                  لا توجد سجلات تدقيق حالياً
                 </h3>
                 <p className="mt-2 max-w-md text-sm text-[#6b7a94]">
-                  بمجرد توفر بيانات حقيقية سيتم تحديث المخططات تلقائياً. يمكنك إدخال بيانات تجريبية لاختبار التجربة.
+                  سيتم عرض سجلات التدقيق هنا عندما تحدث نشاطات في النظام.
                 </p>
-                <Button className="mt-4" variant="secondary" onClick={() => router.push("/SystemMonitoring")}>
-                  الذهاب إلى مركز المراقبة
+                <Button
+                  className="mt-4"
+                  variant="secondary"
+                  onClick={() => router.push("/audit")}
+                >
+                  الذهاب إلى صفحة سجلات التدقيق
                 </Button>
               </div>
             )}
