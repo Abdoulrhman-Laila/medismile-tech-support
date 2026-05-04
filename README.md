@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# لوحة تحكم الدعم الفني · Tech Support Dashboard
 
-## Getting Started
+<div dir="rtl" align="right">
 
-First, run the development server:
+واجهة ويب حديثة لإدارة عمليات الدعم الفني والمؤسسات التعليمية — تذاكر، تقارير، تدقيق، مواعيد، ومحتوى مجتمعي — مع تجربة استخدام عربية (RTL) ولوحة جانبية موحّدة.
+
+</div>
+
+<p align="center">
+  <a href="https://nextjs.org/" title="Next.js">
+    <img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js&logoColor=white" alt="Next.js 15" />
+  </a>
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
+  <img src="https://img.shields.io/badge/Redux_Toolkit-764ABC?style=flat-square&logo=redux&logoColor=white" alt="Redux Toolkit" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/i18next-26A69A?style=flat-square&logo=i18next&logoColor=white" alt="i18next" />
+</p>
+
+---
+
+## المزايا الرئيسية
+
+| | |
+|:---|:---|
+| 🏠 **الرئيسية** | نظرة عامة سريعة على لوحة التحكم |
+| 🎓 **إدارة الجامعات** | إدارة المؤسسات التعليمية المرتبطة بالنظام |
+| 💾 **النسخ الاحتياطي** | إدارة النسخ الاحتياطي والموارد التخزينية |
+| 👥 **الحسابات** | إدارة المستخدمين والصلاحيات |
+| 💬 **تذاكر الدعم الفني** | متابعة طلبات الدعم والتواصل |
+| 📜 **سجلات التدقيق** | مراجعة الأنشطة وسجل النظام |
+| 🗂️ **الحالات السريرية** | عرض وإدارة الحالات المرتبطة بالعمل |
+| 📅 **المواعيد** | جدولة ومتابعة المواعيد |
+| 🌐 **المحتوى المجتمعي** | المحتوى والتفاعلات المجتمعية |
+| 📎 **المرفقات** | رفع وعرض الملفات والمرفقات |
+| 📊 **التقارير** | تقارير ولوحات بيانات تشغيلية |
+| 🔔 **الإشعارات** | تنبيهات وحديثات للمستخدمين |
+| ⭐ **التقييمات** | تقييمات الأداء والجودة |
+| 👤 **الملف الشخصي** | إعدادات الحساب والهوية |
+
+> صفحات إضافية في المشروع (مثل المراقبة، التشخيص، والرسائل) توسّع نطاق النظام حسب المسارات المتاحة في `src/app/`.
+
+---
+
+## التقنيات المستخدمة
+
+- **Next.js (App Router)** — تطبيق ويب سريع مع توجيه حديث
+- **React 19** — واجهة تفاعلية
+- **Redux Toolkit** — إدارة حالة مركزية للبيانات والجلسات
+- **Axios** — طلبات HTTP للواجهات الخلفية
+- **Tailwind CSS 4** — تنسيق سريع ومتسق
+- **Recharts** — رسوم بيانية للتقارير
+- **Framer Motion** — حركات وانتقالات سلسة
+- **i18next / react-i18next** — دعم تعدد اللغات
+- **Lucide React & Heroicons** — أيقونات واجهة موحّدة
+- **Headless UI** — مكوّنات قابلة للوصول
+
+---
+
+## المتطلبات
+
+- [Node.js](https://nodejs.org/) **18+** (يُنصح بأحدث إصدار LTS)
+- مدير حزم: `npm` أو `yarn` أو `pnpm` أو `bun`
+
+---
+
+## التشغيل السريع
 
 ```bash
+# تثبيت الاعتمادات
+npm install
+
+# بيئة التطوير (http://localhost:3000)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```bash
+# بناء الإنتاج
+npm run build
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+# تشغيل نسخة الإنتاج محلياً
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# فحص جودة الكود
+npm run lint
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## هيكل المشروع (مختصر)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/              # صفحات ومسارات Next.js (App Router)
+├── components/       # مكوّنات واجهة مشتركة (مثل الشريط الجانبي)
+├── redux/            # مخازن وتخفيضات Redux
+├── api/              # طبقة الاتصال بالواجهات البرمجية
+└── ...
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## النشر
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+يمكن نشر التطبيق على [Vercel](https://vercel.com/) أو أي منصة تدعم تطبيقات Node.js. راجع [توثيق نشر Next.js](https://nextjs.org/docs/app/building-your-application/deploying).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## الترخيص
+
+هذا المستودع **خاص** (`"private": true` في `package.json`) — الاستخدام والتوزيع يخضع لسياسة مؤسستك.
+
+---
+
+<p align="center">
+  مبني بـ <img src="https://img.shields.io/badge/Next.js-000000?style=flat&logo=next.js&logoColor=white" height="18" alt="Next.js" /> — لوحة تحكم <strong>ITSUPPORT</strong>
+</p>
